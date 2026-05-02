@@ -43,7 +43,9 @@
 
     </style>
 </head>
-   <!-- INÍCIO DO QR CODE MÁGICO -->
+
+<body>
+       <!-- INÍCIO DO QR CODE MÁGICO -->
 <div style="text-align:center; padding: 20px; background: #111; border-radius: 10px; margin: 20px;">
     <h3 style="color:white;">📲 APONTA O TELEMÓVEL</h3>
     <img id="qr-magic" src="" style="width: 250px; height: 250px; background: white; padding: 10px; border-radius: 10px;">
@@ -57,8 +59,6 @@
     document.getElementById('qr-magic').src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + link_do_jogo;
 </script>
 <!-- FIM DO QR CODE MÁGICO --> 
-<body>
-    
     <!-- 1. ECRÃ DE LOGIN -->
     <div id="login-screen">
         <h1>ZAP FLAGS</h1>

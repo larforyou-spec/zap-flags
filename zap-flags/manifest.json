@@ -1,16 +1,20 @@
 {
   "name": "ZAP FLAGS",
-  "short_name": "ZAP",
-  "start_url": "index.html",
+  "short_name": "ZAP FLAGS",
+  "description": "Jogo geolocalizado de bandeiras com publicidade local, skill, energia e recompensas.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#00ff00",
+  "theme_color": "#000000",
   "orientation": "portrait",
+  "lang": "pt-PT",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "./icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -92,6 +92,7 @@
       margin-top: 10px;
     }
 
+    /* ECRÃS */
     #login-screen,
     #game-screen,
     #pr-screen {
@@ -117,7 +118,7 @@
 
     .login-box {
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
       border: 2px solid #0f0;
       border-radius: 16px;
       background: rgba(0,20,0,.30);
@@ -270,7 +271,7 @@
       box-shadow: 0 0 10px rgba(0,255,0,.15);
     }
 
-    /* OFFLINE arrastável */
+    /* OFFLINE quadrado arrastável */
     #offline-controls {
       position: absolute;
       left: 10px;
@@ -280,7 +281,8 @@
       border: 1px solid #0f0;
       border-radius: 12px;
       padding: 8px;
-      width: 96px;
+      width: 112px;
+      height: 132px;
       text-align: center;
       touch-action: none;
       user-select: none;
@@ -288,18 +290,26 @@
     }
 
     .drag-handle {
-      font-size: 10px;
+      font-size: 14px;
       color: #bfffbf;
-      margin-bottom: 6px;
-      padding: 4px;
+      margin-bottom: 4px;
+      padding: 2px;
       border-bottom: 1px solid rgba(0,255,0,.25);
+    }
+
+    .offline-size-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 4px;
+      margin-bottom: 4px;
     }
 
     .dpad {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 4px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .dpad button {
@@ -371,10 +381,6 @@
       border-radius: 14px;
       padding: 16px;
       box-shadow: 0 0 25px rgba(0,255,0,.22);
-    }
-
-    .modal h2 {
-      margin-top: 0;
     }
 
     .brand-head {
@@ -498,7 +504,7 @@
       <h1>ZAP FLAGS</h1>
       <div class="sub">
         Escolhe como queres entrar. O jogador é a opção principal.
-        O código de acesso está em modo demonstração nesta fase.
+        A recuperação de senha está em modo demonstração nesta fase.
       </div>
 
       <div class="entry-switch">
@@ -510,12 +516,12 @@
         </button>
       </div>
 
-      <!-- JG -->
       <div id="jg-form">
         <div class="form-title">Jogador</div>
         <input id="player-name" type="text" placeholder="Nome do jogador" />
         <input id="player-contact" type="text" placeholder="Email ou nº de telefone" />
-        <input id="player-password" type="password" placeholder="Password" />
+        <input id="player-password" type="password" placeholder="Criar senha" />
+        <input id="player-password-confirm" type="password" placeholder="Confirmar senha" />
 
         <select id="player-avatar-mode">
           <option value="male">Avatar masculino</option>
@@ -524,29 +530,27 @@
         </select>
 
         <input id="player-photo-url" type="text" placeholder="URL da foto (opcional)" />
-        <input id="player-code" type="text" placeholder="Código de acesso" class="hidden" />
 
         <div class="btn-row">
-          <button onclick="sendAccessCode('JG')">PEDIR CÓDIGO</button>
-          <button class="btn-dark" onclick="sendAccessCode('JG')">NOVO CÓDIGO</button>
-          <button id="jg-confirm-btn" class="hidden" onclick="confirmAccessCode('JG')">CONFIRMAR E ENTRAR</button>
+          <button onclick="registerAccount('JG')">REGISTAR</button>
+          <button class="btn-dark" onclick="loginAccount('JG')">ENTRAR</button>
+          <button class="btn-dark" onclick="recoverPassword('JG')">RECUPERAR SENHA</button>
         </div>
 
         <div id="jg-auth-msg" class="small auth-msg"></div>
       </div>
 
-      <!-- PR -->
       <div id="pr-form" class="hidden">
         <div class="form-title">Empresa / PR</div>
         <input id="pr-company-name" type="text" placeholder="Nome da empresa" />
         <input id="pr-contact" type="text" placeholder="Email ou nº de telefone" />
-        <input id="pr-password" type="password" placeholder="Password" />
-        <input id="pr-code" type="text" placeholder="Código de acesso" class="hidden" />
+        <input id="pr-password" type="password" placeholder="Criar senha" />
+        <input id="pr-password-confirm" type="password" placeholder="Confirmar senha" />
 
         <div class="btn-row">
-          <button onclick="sendAccessCode('PR')">PEDIR CÓDIGO</button>
-          <button class="btn-dark" onclick="sendAccessCode('PR')">NOVO CÓDIGO</button>
-          <button id="pr-confirm-btn" class="hidden" onclick="confirmAccessCode('PR')">CONFIRMAR E ENTRAR</button>
+          <button onclick="registerAccount('PR')">REGISTAR</button>
+          <button class="btn-dark" onclick="loginAccount('PR')">ENTRAR</button>
+          <button class="btn-dark" onclick="recoverPassword('PR')">RECUPERAR SENHA</button>
         </div>
 
         <div id="pr-auth-msg" class="small auth-msg"></div>
@@ -579,8 +583,14 @@
     </div>
 
     <div id="offline-controls" class="hidden">
-      <div class="drag-handle">MOVER</div>
+      <div class="drag-handle">⋮⋮</div>
       <div class="small"><b>OFFLINE</b><br>1m por toque</div>
+
+      <div class="offline-size-row">
+        <button class="btn-dark btn-small" onclick="resizeOfflineControls(-10)">A-</button>
+        <button class="btn-dark btn-small" onclick="resizeOfflineControls(10)">A+</button>
+      </div>
+
       <div class="dpad">
         <div class="empty">.</div>
         <button onclick="moveHomePlayer(0, 1)">⬆</button>
@@ -605,7 +615,7 @@
     </div>
   </div>
 
-  <!-- MODAL ESCOLHA DE MODO -->
+  <!-- MODO -->
   <div id="mode-modal" class="modal hidden">
     <div class="panel-header">
       <h2 style="margin:0;">Como queres jogar?</h2>
@@ -633,12 +643,12 @@
     <div id="flag-modal-content"></div>
   </div>
 
-  <!-- PAINEL PR -->
+  <!-- PR -->
   <div id="pr-screen" class="hidden">
     <div class="pr-box">
       <h2>PAINEL DA EMPRESA / PR</h2>
       <div class="small">
-        Na primeira inscrição o PR recebe um pacote grátis sem ofertas.
+        Na primeira inscrição o PR recebe um pacote mínimo grátis sem ofertas.
         Só os pacotes pagos permitem configurar prémios.
       </div>
 
@@ -652,15 +662,13 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const STORAGE_KEY = "zap_flags_v5";
+    const STORAGE_KEY = "zap_flags_v6";
 
     const PACKS = {
-      STARTER_FREE:   { label: "Starter Grátis", flags: 10000, radiusKm: 5, paid: false },
-      LOCAL:          { label: "Local", flags: 50000, radiusKm: 5, paid: true },
-      SUPER_PEQUENO:  { label: "Super Pequeno", flags: 150000, radiusKm: 20, paid: true },
-      SUPER:          { label: "Super", flags: 500000, radiusKm: 50, paid: true },
-      SUPER_GRANDE:   { label: "Super Grande", flags: 2000000, radiusKm: 150, paid: true },
-      GIGANTE:        { label: "Gigante", flags: 5000000, radiusKm: Infinity, paid: true }
+      MINIMO: { label: "Mínimo", flags: 1000, radiusKm: 5, paid: false, bingos: 0 },
+      MEDIO:  { label: "Médio",  flags: 2500, radiusKm: 15, paid: true, bingos: 2 },
+      GRANDE: { label: "Grande", flags: 10000, radiusKm: 50, paid: true, bingos: 3 },
+      ENORME: { label: "Enorme", flags: 25000, radiusKm: Infinity, paid: true, bingos: 5 }
     };
 
     function seedPRs() {
@@ -678,61 +686,16 @@
           lat: 41.1496,
           lng: -8.6109,
           color: "#FF4D4F",
-          totalBought: 50000,
-          flagsLeft: 50000,
+          totalBought: 1000,
+          flagsLeft: 1000,
           packRadiusKm: 5,
-          packHistory: ["LOCAL"],
-          rewardsEnabled: true,
-          maxRewards: 100,
-          rewardsGiven: 0,
-          promoFlagBudgetLeft: 2000,
-          reward20: "5% de desconto"
-        },
-        {
-          id: "seed2",
-          ownerContact: "demo2@zapflags.pt",
-          ownerPassword: "123456",
-          name: "Ginásio Fit",
-          short: "GF",
-          website: "https://ginasio-fit.pt",
-          contact: "913000002",
-          address: "Avenida da Liberdade, Lisboa",
-          photo: "",
-          lat: 38.7223,
-          lng: -9.1393,
-          color: "#1677FF",
-          totalBought: 150000,
-          flagsLeft: 150000,
-          packRadiusKm: 20,
-          packHistory: ["SUPER_PEQUENO"],
-          rewardsEnabled: true,
-          maxRewards: 100,
-          rewardsGiven: 0,
-          promoFlagBudgetLeft: 2000,
-          reward20: "1 aula grátis"
-        },
-        {
-          id: "seed3",
-          ownerContact: "demo3@zapflags.pt",
-          ownerPassword: "123456",
-          name: "Pastelaria Doce",
-          short: "PD",
-          website: "https://pastelaria-doce.pt",
-          contact: "913000003",
-          address: "Centro de Braga",
-          photo: "",
-          lat: 41.5518,
-          lng: -8.4229,
-          color: "#FADB14",
-          totalBought: 500000,
-          flagsLeft: 500000,
-          packRadiusKm: 50,
-          packHistory: ["SUPER"],
+          packHistory: ["MINIMO"],
           rewardsEnabled: false,
           maxRewards: 0,
           rewardsGiven: 0,
           promoFlagBudgetLeft: 0,
-          reward20: "Sem prémio"
+          reward20: "Sem prémio",
+          bingosAvailable: 0
         }
       ];
     }
@@ -774,6 +737,7 @@
 
         parsed.prs.forEach(pr => {
           if (!("ownerPassword" in pr)) pr.ownerPassword = "";
+          if (!("bingosAvailable" in pr)) pr.bingosAvailable = 0;
         });
 
         return parsed;
@@ -784,12 +748,6 @@
 
     let state = loadState();
 
-    let entryMode = "JG";
-    let authState = {
-      JG: { code: null, validated: false },
-      PR: { code: null, validated: false }
-    };
-
     let map = null;
     let playerMarker = null;
     let visionCircle = null;
@@ -797,6 +755,7 @@
     let watchId = null;
     let allFlags = [];
     let offlineMode = false;
+    let currentOpenPanel = null;
 
     let lastPosForEnergy = null;
     let movedMetersBuffer = 0;
@@ -805,18 +764,12 @@
     let lastFlagRefreshTime = 0;
     let lastOfflineSuggestion = 0;
 
-    let currentOpenPanel = null;
-
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
     function randomId(prefix) {
       return prefix + "_" + Math.random().toString(36).slice(2, 10).toUpperCase();
-    }
-
-    function generateDemoCode() {
-      return String(Math.floor(100000 + Math.random() * 900000));
     }
 
     function findPR(prId) {
@@ -883,11 +836,7 @@
 
     function calculateVision(zapFlags) {
       if (zapFlags <= 0) return 5;
-
-      if (zapFlags <= 100000) {
-        return +(5 + 45 * Math.pow(zapFlags / 100000, 0.72)).toFixed(2);
-      }
-
+      if (zapFlags <= 100000) return +(5 + 45 * Math.pow(zapFlags / 100000, 0.72)).toFixed(2);
       const extra = Math.min(1, (zapFlags - 100000) / 900000);
       return +(50 + 50 * Math.pow(extra, 0.82)).toFixed(2);
     }
@@ -920,14 +869,11 @@
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function() {
         navigator.serviceWorker.register("./service-worker.js")
-          .then(reg => console.log("SW registado:", reg.scope))
           .catch(err => console.log("Erro SW:", err));
       });
     }
 
     function switchEntryMode(mode) {
-      entryMode = mode;
-
       const jgForm = document.getElementById("jg-form");
       const prForm = document.getElementById("pr-form");
       const btnJG = document.getElementById("btn-entry-jg");
@@ -946,144 +892,98 @@
       }
     }
 
-    function sendAccessCode(type) {
+    function contactAlreadyExists(contact, type) {
+      if (!contact) return false;
+
+      if (type === "JG") {
+        if (state.player.contact && state.player.contact === contact) return false;
+      }
+
+      if (type === "PR") {
+        const existingPR = state.prs.find(pr => pr.ownerContact === contact);
+        if (existingPR) return true;
+      }
+
+      if (type === "JG" && state.prs.some(pr => pr.ownerContact === contact)) return true;
+      if (type === "PR" && state.player.contact === contact) return true;
+
+      return false;
+    }
+
+    function registerAccount(type) {
       if (type === "JG") {
         const name = document.getElementById("player-name").value.trim();
         const contact = document.getElementById("player-contact").value.trim();
         const password = document.getElementById("player-password").value.trim();
+        const confirmPassword = document.getElementById("player-password-confirm").value.trim();
+        const avatarMode = document.getElementById("player-avatar-mode").value;
+        const avatarPhoto = document.getElementById("player-photo-url").value.trim();
         const msg = document.getElementById("jg-auth-msg");
 
-        if (!name || !contact || !password) {
-          msg.innerHTML = "Preenche nome, contacto e password.";
+        if (!name || !contact || !password || !confirmPassword) {
+          msg.innerHTML = "Preenche todos os campos.";
           return;
         }
 
-        authState.JG.code = generateDemoCode();
-        authState.JG.validated = false;
-        document.getElementById("player-code").classList.remove("hidden");
-        document.getElementById("jg-confirm-btn").classList.remove("hidden");
+        if (password !== confirmPassword) {
+          msg.innerHTML = "As senhas não coincidem.";
+          return;
+        }
 
-        msg.innerHTML = "Código demo gerado: <b>" + authState.JG.code + "</b>";
-        alert("Código JG (modo demo): " + authState.JG.code);
+        if (state.player.contact && state.player.contact !== contact) {
+          msg.innerHTML = "Já existe um jogador registado neste navegador.";
+          return;
+        }
+
+        if (contactAlreadyExists(contact, "JG")) {
+          msg.innerHTML = "Esse email/telefone já está em uso.";
+          return;
+        }
+
+        state.player.name = name;
+        state.player.contact = contact;
+        state.player.password = password;
+        state.player.avatarMode = avatarMode;
+        state.player.avatarPhoto = avatarPhoto;
+
+        ensurePlayerData();
+        updateSkillAndVision();
+        saveState();
+
+        msg.innerHTML = "Registo criado com sucesso.";
+        showGameScreen();
+        initMap();
+        renderTopBar();
+        closePanel();
+        document.getElementById("mode-modal").classList.remove("hidden");
       }
 
       if (type === "PR") {
         const company = document.getElementById("pr-company-name").value.trim();
         const contact = document.getElementById("pr-contact").value.trim();
         const password = document.getElementById("pr-password").value.trim();
+        const confirmPassword = document.getElementById("pr-password-confirm").value.trim();
         const msg = document.getElementById("pr-auth-msg");
 
-        if (!company || !contact || !password) {
-          msg.innerHTML = "Preenche empresa, contacto e password.";
+        if (!company || !contact || !password || !confirmPassword) {
+          msg.innerHTML = "Preenche todos os campos.";
           return;
         }
 
-        authState.PR.code = generateDemoCode();
-        authState.PR.validated = false;
-        document.getElementById("pr-code").classList.remove("hidden");
-        document.getElementById("pr-confirm-btn").classList.remove("hidden");
-
-        msg.innerHTML = "Código demo gerado: <b>" + authState.PR.code + "</b>";
-        alert("Código PR (modo demo): " + authState.PR.code);
-      }
-    }
-
-    function confirmAccessCode(type) {
-      if (type === "JG") {
-        const enteredCode = document.getElementById("player-code").value.trim();
-        const msg = document.getElementById("jg-auth-msg");
-
-        if (!authState.JG.code) {
-          msg.innerHTML = "Primeiro tens de pedir um código.";
+        if (password !== confirmPassword) {
+          msg.innerHTML = "As senhas não coincidem.";
           return;
         }
 
-        if (enteredCode !== authState.JG.code) {
-          msg.innerHTML = "Código inválido.";
+        if (contactAlreadyExists(contact, "PR")) {
+          msg.innerHTML = "Esse email/telefone já está em uso.";
           return;
         }
 
-        authState.JG.validated = true;
-        msg.innerHTML = "Código confirmado com sucesso.";
-        startGameAfterValidation();
-      }
-
-      if (type === "PR") {
-        const enteredCode = document.getElementById("pr-code").value.trim();
-        const msg = document.getElementById("pr-auth-msg");
-
-        if (!authState.PR.code) {
-          msg.innerHTML = "Primeiro tens de pedir um código.";
-          return;
-        }
-
-        if (enteredCode !== authState.PR.code) {
-          msg.innerHTML = "Código inválido.";
-          return;
-        }
-
-        authState.PR.validated = true;
-        msg.innerHTML = "Código confirmado com sucesso.";
-        startPRDashboardAfterValidation();
-      }
-    }
-
-    function startGameAfterValidation() {
-      if (!authState.JG.validated) {
-        alert("Tens de confirmar primeiro o código do Jogador.");
-        return;
-      }
-
-      const name = document.getElementById("player-name").value.trim();
-      const contact = document.getElementById("player-contact").value.trim();
-      const password = document.getElementById("player-password").value.trim();
-      const avatarMode = document.getElementById("player-avatar-mode").value;
-      const avatarPhoto = document.getElementById("player-photo-url").value.trim();
-
-      if (!name || !contact || !password) {
-        alert("Preenche nome, contacto e password.");
-        return;
-      }
-
-      state.player.name = name;
-      state.player.contact = contact;
-      state.player.password = password;
-      state.player.avatarMode = avatarMode;
-      state.player.avatarPhoto = avatarPhoto;
-
-      ensurePlayerData();
-      updateSkillAndVision();
-      saveState();
-
-      showGameScreen();
-      initMap();
-      renderTopBar();
-      closePanel();
-      document.getElementById("mode-modal").classList.remove("hidden");
-    }
-
-    function startPRDashboardAfterValidation() {
-      if (!authState.PR.validated) {
-        alert("Tens de confirmar primeiro o código do PR.");
-        return;
-      }
-
-      const company = document.getElementById("pr-company-name").value.trim();
-      const contact = document.getElementById("pr-contact").value.trim();
-      const password = document.getElementById("pr-password").value.trim();
-
-      if (!company || !contact || !password) {
-        alert("Preenche empresa, contacto e password.");
-        return;
-      }
-
-      let existing = state.prs.find(pr => pr.ownerContact === contact);
-
-      if (!existing) {
         const palette = ["#FF4D4F", "#1677FF", "#52C41A", "#FADB14", "#722ED1", "#FA8C16"];
         const color = palette[Math.floor(Math.random() * palette.length)];
 
-        existing = {
+        const pr = {
           id: randomId("PR"),
           ownerContact: contact,
           ownerPassword: password,
@@ -1096,32 +996,130 @@
           lat: 38.7223,
           lng: -9.1393,
           color,
-          totalBought: PACKS.STARTER_FREE.flags,
-          flagsLeft: PACKS.STARTER_FREE.flags,
-          packRadiusKm: PACKS.STARTER_FREE.radiusKm,
-          packHistory: ["STARTER_FREE"],
+          totalBought: PACKS.MINIMO.flags,
+          flagsLeft: PACKS.MINIMO.flags,
+          packRadiusKm: PACKS.MINIMO.radiusKm,
+          packHistory: ["MINIMO"],
           rewardsEnabled: false,
           maxRewards: 0,
           rewardsGiven: 0,
           promoFlagBudgetLeft: 0,
-          reward20: "Sem prémio"
+          reward20: "Sem prémio",
+          bingosAvailable: PACKS.MINIMO.bingos
         };
 
-        state.prs.push(existing);
-      } else {
-        if (existing.ownerPassword && existing.ownerPassword !== password) {
-          alert("Password incorreta para esta empresa.");
+        state.prs.push(pr);
+        state.currentPRId = pr.id;
+        ensurePlayerData();
+        saveState();
+
+        msg.innerHTML = "Empresa registada com sucesso.";
+        showPRDashboard();
+      }
+    }
+
+    function loginAccount(type) {
+      if (type === "JG") {
+        const contact = document.getElementById("player-contact").value.trim();
+        const password = document.getElementById("player-password").value.trim();
+        const msg = document.getElementById("jg-auth-msg");
+
+        if (!contact || !password) {
+          msg.innerHTML = "Indica contacto e senha.";
           return;
         }
 
-        existing.name = company;
-        existing.ownerPassword = password;
+        if (!state.player.contact || !state.player.password) {
+          msg.innerHTML = "Ainda não existe jogador registado neste navegador.";
+          return;
+        }
+
+        if (state.player.contact !== contact || state.player.password !== password) {
+          msg.innerHTML = "Contacto ou senha incorretos.";
+          return;
+        }
+
+        msg.innerHTML = "Entrada com sucesso.";
+        showGameScreen();
+        initMap();
+        renderTopBar();
+        closePanel();
+        document.getElementById("mode-modal").classList.remove("hidden");
       }
 
-      state.currentPRId = existing.id;
-      ensurePlayerData();
-      saveState();
-      showPRDashboard();
+      if (type === "PR") {
+        const contact = document.getElementById("pr-contact").value.trim();
+        const password = document.getElementById("pr-password").value.trim();
+        const msg = document.getElementById("pr-auth-msg");
+
+        const pr = state.prs.find(p => p.ownerContact === contact);
+
+        if (!pr) {
+          msg.innerHTML = "Empresa não encontrada.";
+          return;
+        }
+
+        if (pr.ownerPassword !== password) {
+          msg.innerHTML = "Senha incorreta.";
+          return;
+        }
+
+        state.currentPRId = pr.id;
+        saveState();
+        msg.innerHTML = "Entrada com sucesso.";
+        showPRDashboard();
+      }
+    }
+
+    function recoverPassword(type) {
+      if (type === "JG") {
+        const contact = document.getElementById("player-contact").value.trim();
+        const msg = document.getElementById("jg-auth-msg");
+
+        if (!contact) {
+          msg.innerHTML = "Indica o email/telefone.";
+          return;
+        }
+
+        if (!state.player.contact || state.player.contact !== contact) {
+          msg.innerHTML = "Conta do jogador não encontrada.";
+          return;
+        }
+
+        const viaPhone = confirm("OK = receber no telemóvel\nCancelar = receber no e-mail");
+        alert(
+          viaPhone
+            ? "Modo demo: senha enviada para o telemóvel.\nSenha atual: " + state.player.password
+            : "Modo demo: senha enviada para o e-mail.\nSenha atual: " + state.player.password
+        );
+
+        msg.innerHTML = "Recuperação iniciada em modo demo.";
+      }
+
+      if (type === "PR") {
+        const contact = document.getElementById("pr-contact").value.trim();
+        const msg = document.getElementById("pr-auth-msg");
+
+        if (!contact) {
+          msg.innerHTML = "Indica o email/telefone.";
+          return;
+        }
+
+        const pr = state.prs.find(p => p.ownerContact === contact);
+        if (!pr) {
+          msg.innerHTML = "Empresa não encontrada.";
+          return;
+        }
+
+        const viaPhone = confirm("OK = receber no telemóvel\nCancelar = receber no e-mail");
+        alert(
+          viaPhone
+            ? "Modo demo: senha enviada para o telemóvel.\nSenha atual: " + pr.ownerPassword
+            : "Modo demo: senha enviada para o e-mail.\nSenha atual: " + pr.ownerPassword
+        );
+
+        msg.innerHTML = "Recuperação iniciada em modo demo.";
+      }
     }
 
     function showGameScreen() {
@@ -1154,7 +1152,7 @@
         touchZoom: true,
         boxZoom: false,
         keyboard: false
-      }).setView([38.7223, -9.1393], 19);
+      }).setView([38.7223, -9.1393], 20);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap"
@@ -1215,15 +1213,23 @@
           watchId = navigator.geolocation.watchPosition(
             updatePosition,
             handleGeoError,
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            {
+              enableHighAccuracy: true,
+              maximumAge: 5000,
+              timeout: 20000
+            }
           );
         },
         err => {
           console.warn(err);
-          alert("Não foi possível ativar o GPS. Vais entrar em modo Offline.");
-          activateHomeMode();
+          alert("Não foi possível ativar o GPS. Verifica a permissão ou entra em modo Offline.");
+          document.getElementById("mode-modal").classList.remove("hidden");
         },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+        {
+          enableHighAccuracy: true,
+          maximumAge: 5000,
+          timeout: 20000
+        }
       );
     }
 
@@ -1265,6 +1271,7 @@
 
       if (lastPosForEnergy && fromMovement) {
         const moved = getDistanceMeters(lastPosForEnergy.lat, lastPosForEnergy.lng, lat, lng);
+
         if (moved > 0.5) {
           movedMetersBuffer += moved;
           lastMovementTime = Date.now();
@@ -1298,7 +1305,7 @@
       }
 
       if (centerMap) {
-        map.setView([lat, lng], 19);
+        map.setView([lat, lng], 20);
       }
 
       updateFogOverlay();
@@ -1319,7 +1326,7 @@
 
     function centerOnPlayer() {
       if (!map || !currentPosition) return;
-      map.setView([currentPosition.lat, currentPosition.lng], 19);
+      map.setView([currentPosition.lat, currentPosition.lng], 20);
     }
 
     function moveHomePlayer(dxMeters, dyMeters) {
@@ -1330,6 +1337,18 @@
 
       updatePlayerLocation(lat, lng, true, true);
       manualRefreshFlags();
+    }
+
+    function resizeOfflineControls(delta) {
+      const box = document.getElementById("offline-controls");
+      const currentW = parseInt(box.style.width || box.offsetWidth, 10);
+      const currentH = parseInt(box.style.height || box.offsetHeight, 10);
+
+      const nextW = Math.max(90, Math.min(160, currentW + delta));
+      const nextH = Math.max(110, Math.min(190, currentH + delta));
+
+      box.style.width = nextW + "px";
+      box.style.height = nextH + "px";
     }
 
     function clearFlags() {
@@ -1366,7 +1385,6 @@
         rnd -= c.weight;
         if (rnd <= 0) return c.pr;
       }
-
       return candidates[0].pr;
     }
 
@@ -1925,6 +1943,7 @@
       pr.totalBought += pack.flags;
       pr.flagsLeft += pack.flags;
       pr.packHistory.push(packKey);
+      pr.bingosAvailable += pack.bingos;
 
       if (pack.radiusKm === Infinity) {
         pr.packRadiusKm = Infinity;
@@ -1998,22 +2017,26 @@
           <b>Bandeiras restantes:</b> ${pr.flagsLeft.toLocaleString()}<br>
           <b>Total comprado:</b> ${pr.totalBought.toLocaleString()}<br>
           <b>Raio da campanha:</b> ${radiusText}<br>
+          <b>Bingos disponíveis:</b> ${pr.bingosAvailable}<br>
           ${getStockWarning(pr)}
         </div>
 
         <div class="item">
-          <b>Pacote grátis inicial</b><br>
-          Starter grátis sem ofertas. Só publicidade.
+          <b>Pacote mínimo grátis</b><br>
+          1.000 bandeiras / 5 km / sem ofertas.
         </div>
 
         <div class="item">
           <b>Comprar pacotes pagos</b>
           <div class="pack-row">
-            <button onclick="buyPackForCurrentPR('LOCAL')">LOCAL</button>
-            <button onclick="buyPackForCurrentPR('SUPER_PEQUENO')">SUPER PEQUENO</button>
-            <button onclick="buyPackForCurrentPR('SUPER')">SUPER</button>
-            <button onclick="buyPackForCurrentPR('SUPER_GRANDE')">SUPER GRANDE</button>
-            <button onclick="buyPackForCurrentPR('GIGANTE')">GIGANTE</button>
+            <button onclick="buyPackForCurrentPR('MEDIO')">MÉDIO</button>
+            <button onclick="buyPackForCurrentPR('GRANDE')">GRANDE</button>
+            <button onclick="buyPackForCurrentPR('ENORME')">ENORME</button>
+          </div>
+          <div class="small" style="margin-top:8px;">
+            Médio: 2.500 + 2 bingos / 15 km<br>
+            Grande: 10.000 + 3 bingos / 50 km<br>
+            Enorme: 25.000 + 5 bingos / país inteiro
           </div>
         </div>
 
@@ -2109,10 +2132,8 @@
 
       window.addEventListener("pointermove", (e) => {
         if (!dragging) return;
-
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
-
         el.style.left = (startLeft + dx) + "px";
         el.style.top = (startTop + dy) + "px";
       });
@@ -2122,7 +2143,6 @@
       });
     }
 
-    // ARRANQUE
     ensurePlayerData();
     updateSkillAndVision();
     renderTopBar();

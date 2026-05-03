@@ -1012,10 +1012,10 @@
     }
 
     function startGameAfterValidation() {
-      if (!authState.JG.validated) {
-        alert("Tens de confirmar primeiro o código do Jogador.");
-        return;
-      }
+      state.player.name = document.getElementById("player-name").value.trim();
+      state.player.contact = document.getElementById("player-contact").value.trim();
+      state.player.password = document.getElementById("player-password").value.trim();
+      
 
       state.player.name = document.getElementById("player-name").value.trim();
       state.player.contact = document.getElementById("player-contact").value.trim();

@@ -271,7 +271,7 @@
       box-shadow: 0 0 10px rgba(0,255,0,.15);
     }
 
-   #offline-controls {
+  #offline-controls {
   position: absolute;
   left: 10px;
   bottom: 90px;
@@ -284,16 +284,34 @@
   height: 120px;
   text-align: center;
   touch-action: none;
-  user-select: none; }
+  user-select: none;
+  cursor: move;
+}
 
-    .drag-handle {
-      font-size: 14px;
-      color: #bfffbf;
-      margin-bottom: 4px;
-      padding: 2px;
-      border-bottom: 1px solid rgba(0,255,0,.25);
-    }
+.drag-handle {
+  font-size: 14px;
+  color: #bfffbf;
+  margin-bottom: 4px;
+  padding: 2px;
+  border-bottom: 1px solid rgba(0,255,0,.25);
+}
 
+.dpad {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.dpad button {
+  padding: 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.dpad .empty {
+  visibility: hidden;
+}
     .offline-size-row {
       display: flex;
       justify-content: center;

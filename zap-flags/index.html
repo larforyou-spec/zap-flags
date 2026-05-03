@@ -597,10 +597,24 @@
       <button class="float-btn btn-dark" onclick="centerOnPlayer()">📍</button>
     </div>
 
-    <div id="offline-controls" class="hidden">
-      <div class="drag-handle">⋮⋮</div>
-      <div class="small"><b>OFFLINE</b><br>1m por toque</div>
+   <div id="offline-controls" class="hidden">
+  <div class="drag-handle">⋮⋮</div>
+  <div class="small"><b>OFFLINE</b><br>1m por toque</div>
 
+  <div class="dpad">
+    <div class="empty">.</div>
+    <button onclick="moveHomePlayer(0, 1)">⬆</button>
+    <div class="empty">.</div>
+
+    <button onclick="moveHomePlayer(-1, 0)">⬅</button>
+    <button onclick="manualRefreshFlags()">⟳</button>
+    <button onclick="moveHomePlayer(1, 0)">➡</button>
+
+    <div class="empty">.</div>
+    <button onclick="moveHomePlayer(0, -1)">⬇</button>
+    <div class="empty">.</div>
+  </div>
+</div>
       <div class="offline-size-row">
         <button class="btn-dark btn-small" onclick="resizeOfflineControls(-10)">A-</button>
         <button class="btn-dark btn-small" onclick="resizeOfflineControls(10)">A+</button>

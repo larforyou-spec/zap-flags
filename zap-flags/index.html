@@ -50,6 +50,11 @@
       border: 1px solid #ff6b6b;
     }
 
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
     input, select, textarea {
       width: 100%;
       margin-bottom: 10px;
@@ -87,7 +92,6 @@
       margin-top: 10px;
     }
 
-    /* Ecrãs */
     #login-screen,
     #game-screen,
     #pr-screen {
@@ -206,7 +210,6 @@
         );
     }
 
-    /* Barra fina topo */
     #top-strip {
       position: absolute;
       top: 8px;
@@ -245,7 +248,6 @@
       flex-wrap: wrap;
     }
 
-    /* Botões flutuantes */
     #floating-buttons {
       position: absolute;
       right: 10px;
@@ -268,18 +270,29 @@
       box-shadow: 0 0 10px rgba(0,255,0,.15);
     }
 
-    /* Controlo offline pequeno */
+    /* OFFLINE arrastável */
     #offline-controls {
       position: absolute;
       left: 10px;
       bottom: 90px;
-      z-index: 1100;
-      background: rgba(0,0,0,.84);
+      z-index: 2600;
+      background: rgba(0,0,0,.88);
       border: 1px solid #0f0;
       border-radius: 12px;
       padding: 8px;
-      width: 110px;
+      width: 96px;
       text-align: center;
+      touch-action: none;
+      user-select: none;
+      cursor: move;
+    }
+
+    .drag-handle {
+      font-size: 10px;
+      color: #bfffbf;
+      margin-bottom: 6px;
+      padding: 4px;
+      border-bottom: 1px solid rgba(0,255,0,.25);
     }
 
     .dpad {
@@ -299,13 +312,12 @@
       visibility: hidden;
     }
 
-    /* Painel flutuante */
     #side-panel {
       position: absolute;
       left: 8px;
       right: 8px;
       bottom: 8px;
-      z-index: 1050;
+      z-index: 2500;
       background: rgba(0,0,0,.92);
       border: 2px solid #0f0;
       border-radius: 14px;
@@ -346,13 +358,12 @@
       gap: 10px;
     }
 
-    /* Modais */
     .modal {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 2000;
+      z-index: 3000;
       width: 92%;
       max-width: 460px;
       background: #000;
@@ -397,7 +408,6 @@
       color: #fff;
     }
 
-    /* PR screen */
     #pr-screen {
       background: #000;
       z-index: 9998;
@@ -425,7 +435,6 @@
     .danger  { color: #ff8686; font-weight: bold; }
     .ok      { color: #8fff8f; font-weight: bold; }
 
-    /* Ícones Leaflet */
     .player-marker {
       width: 28px;
       height: 28px;
@@ -506,7 +515,8 @@
         <div class="form-title">Jogador</div>
         <input id="player-name" type="text" placeholder="Nome do jogador" />
         <input id="player-contact" type="text" placeholder="Email ou nº de telefone" />
-<input id="player-password" type="password" placeholder="Password" />
+        <input id="player-password" type="password" placeholder="Password" />
+
         <select id="player-avatar-mode">
           <option value="male">Avatar masculino</option>
           <option value="female">Avatar feminino</option>
@@ -569,6 +579,7 @@
     </div>
 
     <div id="offline-controls" class="hidden">
+      <div class="drag-handle">MOVER</div>
       <div class="small"><b>OFFLINE</b><br>1m por toque</div>
       <div class="dpad">
         <div class="empty">.</div>
@@ -595,19 +606,22 @@
   </div>
 
   <!-- MODAL ESCOLHA DE MODO -->
- <div id="mode-modal" class="modal hidden">
-  <div class="panel-header">
-    <h2 style="margin:0;">Como queres jogar?</h2>
-    <button class="btn-dark btn-small" onclick="closeModeModal()">X</button>
-  </div>
+  <div id="mode-modal" class="modal hidden">
+    <div class="panel-header">
+      <h2 style="margin:0;">Como queres jogar?</h2>
+      <button class="btn-dark btn-small" onclick="closeModeModal()">X</button>
+    </div>
+
     <div class="item">
       <b>GPS / Rua</b><br>
       Joga a caminhar na rua com localização real.
     </div>
+
     <div class="item">
       <b>Offline / Casa</b><br>
       Joga sem GPS real, com movimento manual e sem exploração física real.
     </div>
+
     <div class="btn-row">
       <button onclick="requestGPSMode()">ATIVAR GPS</button>
       <button class="btn-dark" onclick="activateHomeMode()">ENTRAR OFFLINE</button>
@@ -638,7 +652,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const STORAGE_KEY = "zap_flags_v4";
+    const STORAGE_KEY = "zap_flags_v5";
 
     const PACKS = {
       STARTER_FREE:   { label: "Starter Grátis", flags: 10000, radiusKm: 5, paid: false },
@@ -654,6 +668,7 @@
         {
           id: "seed1",
           ownerContact: "demo1@zapflags.pt",
+          ownerPassword: "123456",
           name: "Café Central",
           short: "CC",
           website: "https://cafe-central.pt",
@@ -676,6 +691,7 @@
         {
           id: "seed2",
           ownerContact: "demo2@zapflags.pt",
+          ownerPassword: "123456",
           name: "Ginásio Fit",
           short: "GF",
           website: "https://ginasio-fit.pt",
@@ -698,6 +714,7 @@
         {
           id: "seed3",
           ownerContact: "demo3@zapflags.pt",
+          ownerPassword: "123456",
           name: "Pastelaria Doce",
           short: "PD",
           website: "https://pastelaria-doce.pt",
@@ -723,9 +740,9 @@
     function defaultState() {
       return {
         player: {
-         name: "",
-         contact: "",
-         password: "",
+          name: "",
+          contact: "",
+          password: "",
           avatarMode: "male",
           avatarPhoto: "",
           energy: 100,
@@ -751,8 +768,13 @@
         const parsed = JSON.parse(raw);
 
         if (!parsed.player) parsed.player = defaultState().player;
+        if (!parsed.player.password) parsed.player.password = "";
         if (!parsed.prs || !Array.isArray(parsed.prs)) parsed.prs = seedPRs();
         if (!("currentPRId" in parsed)) parsed.currentPRId = null;
+
+        parsed.prs.forEach(pr => {
+          if (!("ownerPassword" in pr)) pr.ownerPassword = "";
+        });
 
         return parsed;
       } catch (e) {
@@ -783,9 +805,8 @@
     let lastFlagRefreshTime = 0;
     let lastOfflineSuggestion = 0;
 
-    // --------------------------
-    // UTILS
-    // --------------------------
+    let currentOpenPanel = null;
+
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
@@ -896,9 +917,6 @@
       return Math.ceil(diff / (24 * 60 * 60 * 1000)) + " dia(s)";
     }
 
-    // --------------------------
-    // PWA
-    // --------------------------
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function() {
         navigator.serviceWorker.register("./service-worker.js")
@@ -907,9 +925,6 @@
       });
     }
 
-    // --------------------------
-    // LOGIN / ENTRADA
-    // --------------------------
     function switchEntryMode(mode) {
       entryMode = mode;
 
@@ -935,10 +950,11 @@
       if (type === "JG") {
         const name = document.getElementById("player-name").value.trim();
         const contact = document.getElementById("player-contact").value.trim();
+        const password = document.getElementById("player-password").value.trim();
         const msg = document.getElementById("jg-auth-msg");
 
-        if (!name || !contact) {
-          msg.innerHTML = "Preenche o nome e o email/telefone.";
+        if (!name || !contact || !password) {
+          msg.innerHTML = "Preenche nome, contacto e password.";
           return;
         }
 
@@ -954,10 +970,11 @@
       if (type === "PR") {
         const company = document.getElementById("pr-company-name").value.trim();
         const contact = document.getElementById("pr-contact").value.trim();
+        const password = document.getElementById("pr-password").value.trim();
         const msg = document.getElementById("pr-auth-msg");
 
-        if (!company || !contact) {
-          msg.innerHTML = "Preenche o nome da empresa e o email/telefone.";
+        if (!company || !contact || !password) {
+          msg.innerHTML = "Preenche empresa, contacto e password.";
           return;
         }
 
@@ -1012,15 +1029,27 @@
     }
 
     function startGameAfterValidation() {
-      state.player.name = document.getElementById("player-name").value.trim();
-      state.player.contact = document.getElementById("player-contact").value.trim();
-      state.player.password = document.getElementById("player-password").value.trim();
-      
+      if (!authState.JG.validated) {
+        alert("Tens de confirmar primeiro o código do Jogador.");
+        return;
+      }
 
-      state.player.name = document.getElementById("player-name").value.trim();
-      state.player.contact = document.getElementById("player-contact").value.trim();
-      state.player.avatarMode = document.getElementById("player-avatar-mode").value;
-      state.player.avatarPhoto = document.getElementById("player-photo-url").value.trim();
+      const name = document.getElementById("player-name").value.trim();
+      const contact = document.getElementById("player-contact").value.trim();
+      const password = document.getElementById("player-password").value.trim();
+      const avatarMode = document.getElementById("player-avatar-mode").value;
+      const avatarPhoto = document.getElementById("player-photo-url").value.trim();
+
+      if (!name || !contact || !password) {
+        alert("Preenche nome, contacto e password.");
+        return;
+      }
+
+      state.player.name = name;
+      state.player.contact = contact;
+      state.player.password = password;
+      state.player.avatarMode = avatarMode;
+      state.player.avatarPhoto = avatarPhoto;
 
       ensurePlayerData();
       updateSkillAndVision();
@@ -1038,14 +1067,15 @@
         alert("Tens de confirmar primeiro o código do PR.");
         return;
       }
-const password = document.getElementById("pr-password").value.trim();
 
-if (!password) {
-  alert("Tens de indicar a password do PR.");
-  return;
-}
       const company = document.getElementById("pr-company-name").value.trim();
       const contact = document.getElementById("pr-contact").value.trim();
+      const password = document.getElementById("pr-password").value.trim();
+
+      if (!company || !contact || !password) {
+        alert("Preenche empresa, contacto e password.");
+        return;
+      }
 
       let existing = state.prs.find(pr => pr.ownerContact === contact);
 
@@ -1079,15 +1109,14 @@ if (!password) {
 
         state.prs.push(existing);
       } else {
-  if (existing.ownerPassword && existing.ownerPassword !== password) {
-    alert("Password incorreta para esta empresa.");
-    return;
-  }
+        if (existing.ownerPassword && existing.ownerPassword !== password) {
+          alert("Password incorreta para esta empresa.");
+          return;
+        }
 
-  existing.name = company;
-  existing.ownerPassword = password;
-}
-
+        existing.name = company;
+        existing.ownerPassword = password;
+      }
 
       state.currentPRId = existing.id;
       ensurePlayerData();
@@ -1095,9 +1124,6 @@ if (!password) {
       showPRDashboard();
     }
 
-    // --------------------------
-    // SCREEN CONTROL
-    // --------------------------
     function showGameScreen() {
       document.getElementById("login-screen").classList.add("hidden");
       document.getElementById("pr-screen").classList.add("hidden");
@@ -1117,9 +1143,6 @@ if (!password) {
       document.getElementById("pr-screen").classList.add("hidden");
     }
 
-    // --------------------------
-    // MAPA
-    // --------------------------
     function initMap() {
       if (map) return;
 
@@ -1142,7 +1165,6 @@ if (!password) {
 
     function createPlayerIcon() {
       let inner = "JG";
-
       if (state.player.avatarMode === "male") inner = "♂";
       if (state.player.avatarMode === "female") inner = "♀";
       if (state.player.avatarMode === "photo" && state.player.avatarPhoto) {
@@ -1217,6 +1239,10 @@ if (!password) {
       updatePlayerLocation(currentPosition.lat, currentPosition.lng, false, true);
       manualRefreshFlags();
       renderTopBar();
+    }
+
+    function closeModeModal() {
+      document.getElementById("mode-modal").classList.add("hidden");
     }
 
     function handleGeoError(error) {
@@ -1306,9 +1332,6 @@ if (!password) {
       manualRefreshFlags();
     }
 
-    // --------------------------
-    // FLAGS
-    // --------------------------
     function clearFlags() {
       allFlags.forEach(flag => {
         if (flag.marker) map.removeLayer(flag.marker);
@@ -1343,6 +1366,7 @@ if (!password) {
         rnd -= c.weight;
         if (rnd <= 0) return c.pr;
       }
+
       return candidates[0].pr;
     }
 
@@ -1401,7 +1425,6 @@ if (!password) {
 
       clearFlags();
 
-      // 10 bandeiras candidatas em ~50m
       for (let i = 0; i < 4; i++) {
         const z = createFlagCandidate("ZAP");
         if (z) allFlags.push(z);
@@ -1454,9 +1477,6 @@ if (!password) {
       allFlags = allFlags.filter(f => f.id !== flagId);
     }
 
-    // --------------------------
-    // MODAL BANDEIRA
-    // --------------------------
     function openFlagModal(flagId) {
       const flag = allFlags.find(f => f.id === flagId);
       if (!flag || !currentPosition) return;
@@ -1466,7 +1486,10 @@ if (!password) {
 
       if (flag.type === "ZAP") {
         document.getElementById("flag-modal-content").innerHTML = `
-          <h2>🔵 BANDEIRA ZAP</h2>
+          <div class="panel-header">
+            <h2 style="margin:0;">🔵 BANDEIRA ZAP</h2>
+            <button class="btn-dark btn-small" onclick="closeFlagModal()">X</button>
+          </div>
           <div class="item">
             Dá <b>+10% energia</b> e aumenta o teu <b>skill</b>.
           </div>
@@ -1476,7 +1499,6 @@ if (!password) {
           </div>
           <div class="btn-row">
             <button ${canCollect ? "" : "disabled"} onclick="collectZapFlag('${flag.id}')">${canCollect ? "RECOLHER" : "APROXIMA-TE"}</button>
-            <button class="btn-dark" onclick="closeFlagModal()">FECHAR</button>
           </div>
         `;
       } else {
@@ -1484,11 +1506,15 @@ if (!password) {
         if (!pr) return;
 
         document.getElementById("flag-modal-content").innerHTML = `
+          <div class="panel-header">
+            <h2 style="margin:0;">🚩 EMPRESA / PR</h2>
+            <button class="btn-dark btn-small" onclick="closeFlagModal()">X</button>
+          </div>
           <div class="brand-head">
             <div class="brand-icon" style="background:${pr.color};">${pr.short}</div>
             <div>
-              <h2 style="margin:0;">${pr.name}</h2>
-              <div class="small">Empresa / PR</div>
+              <b>${pr.name}</b><br>
+              <span class="small">Empresa / PR</span>
             </div>
           </div>
 
@@ -1512,7 +1538,6 @@ if (!password) {
 
           <div class="btn-row">
             <button ${canCollect ? "" : "disabled"} onclick="collectPRFlag('${flag.id}')">${canCollect ? "RECOLHER" : "APROXIMA-TE"}</button>
-            <button class="btn-dark" onclick="closeFlagModal()">FECHAR</button>
           </div>
         `;
       }
@@ -1529,9 +1554,6 @@ if (!password) {
       document.getElementById("flag-modal").classList.remove("hidden");
     }
 
-    // --------------------------
-    // RECOLHA
-    // --------------------------
     function collectZapFlag(flagId) {
       const flag = allFlags.find(f => f.id === flagId);
       if (!flag || !currentPosition) return;
@@ -1560,7 +1582,10 @@ if (!password) {
       saveState();
 
       showResultModal(`
-        <h2>🔵 BANDEIRA ZAP RECOLHIDA</h2>
+        <div class="panel-header">
+          <h2 style="margin:0;">🔵 BANDEIRA ZAP RECOLHIDA</h2>
+          <button class="btn-dark btn-small" onclick="closeFlagModal()">X</button>
+        </div>
         <div class="item">
           Ganhaste <b>+10% energia</b> e aumentaste o teu skill.
         </div>
@@ -1568,9 +1593,6 @@ if (!password) {
           Energia atual: <b>${state.player.energy}%</b><br>
           Skill atual: <b>${state.player.skill}</b><br>
           Visão atual: <b>${state.player.vision.toFixed(2)}m</b>
-        </div>
-        <div class="btn-row">
-          <button class="btn-dark" onclick="closeFlagModal()">FECHAR</button>
         </div>
       `);
     }
@@ -1650,11 +1672,16 @@ if (!password) {
       saveState();
 
       showResultModal(`
+        <div class="panel-header">
+          <h2 style="margin:0;">${title}</h2>
+          <button class="btn-dark btn-small" onclick="closeFlagModal()">X</button>
+        </div>
+
         <div class="brand-head">
           <div class="brand-icon" style="background:${pr.color};">${pr.short}</div>
           <div>
-            <h2 style="margin:0;">${title}</h2>
-            <div class="small">${pr.name}</div>
+            <b>${pr.name}</b><br>
+            <span class="small">Empresa / PR</span>
           </div>
         </div>
 
@@ -1668,16 +1695,9 @@ if (!password) {
         </div>
 
         ${rewardBox}
-
-        <div class="btn-row">
-          <button class="btn-dark" onclick="closeFlagModal()">FECHAR</button>
-        </div>
       `);
     }
 
-    // --------------------------
-    // QR
-    // --------------------------
     function generateQR(pr) {
       state.player.qrs.push({
         id: randomId("QR"),
@@ -1745,11 +1765,6 @@ if (!password) {
       renderPRDashboard();
     }
 
-    // --------------------------
-    // PAINÉIS / TOP BAR
-    // --------------------------
-    let currentOpenPanel = null;
-
     function renderTopBar() {
       expireOldQrs();
       document.getElementById("energy-fill").style.width = state.player.energy + "%";
@@ -1778,14 +1793,10 @@ if (!password) {
         title.innerText = "Conta";
         content.innerHTML = renderAccountPanel();
       }
-
-      bindPanelEvents();
     }
 
     function renderPanelIfOpen() {
-      if (currentOpenPanel) {
-        openPanel(currentOpenPanel);
-      }
+      if (currentOpenPanel) openPanel(currentOpenPanel);
     }
 
     function closePanel() {
@@ -1879,20 +1890,10 @@ if (!password) {
           <div class="btn-row" style="justify-content:flex-start;">
             <button class="btn-dark" onclick="document.getElementById('mode-modal').classList.remove('hidden')">ESCOLHER MODO</button>
             <button class="btn-dark" onclick="manualRefreshFlags()">REFRESH BANDEIRAS</button>
-            <div class="btn-row" style="justify-content:flex-start;">
-  <button class="btn-dark" onclick="document.getElementById('mode-modal').classList.remove('hidden')">ESCOLHER MODO</button>
-  <button class="btn-dark" onclick="manualRefreshFlags()">REFRESH BANDEIRAS</button>
-  <button class="btn-danger" onclick="logoutPlayer()">TERMINAR SESSÃO</button>
-</div>
-
             <button class="btn-danger" onclick="logoutPlayer()">TERMINAR SESSÃO</button>
           </div>
         </div>
       `;
-    }
-
-    function bindPanelEvents() {
-      // evita erros se não existir
     }
 
     function saveAvatarSettings() {
@@ -1916,9 +1917,6 @@ if (!password) {
       location.reload();
     }
 
-    // --------------------------
-    // PAINEL PR
-    // --------------------------
     function buyPackForCurrentPR(packKey) {
       const pr = getCurrentManagedPR();
       const pack = PACKS[packKey];
@@ -2058,20 +2056,15 @@ if (!password) {
       `;
     }
 
-    // --------------------------
-    // ENERGIA E SUGESTÃO OFFLINE
-    // --------------------------
     setInterval(() => {
       const now = Date.now();
 
-      // recuperar parado
       if (now - lastMovementTime >= 60000 && state.player.energy < 100) {
         state.player.energy = Math.min(100, state.player.energy + 1);
         renderTopBar();
         saveState();
       }
 
-      // sugerir offline se estiver parado no mesmo local
       if (!offlineMode && currentPosition && now - lastMovementTime >= 120000) {
         if (now - lastOfflineSuggestion > 180000) {
           lastOfflineSuggestion = now;
@@ -2084,17 +2077,52 @@ if (!password) {
       }
     }, 30000);
 
-    // --------------------------
-    // AÇÕES EXTRA
-    // --------------------------
     function manualRefreshFlags() {
       refreshFlags(true);
       updateVisibleFlags();
     }
 
-    // --------------------------
+    function makeDraggable(el, handleSelector = ".drag-handle") {
+      const handle = el.querySelector(handleSelector) || el;
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+
+      handle.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        const rect = el.getBoundingClientRect();
+
+        el.style.left = rect.left + "px";
+        el.style.top = rect.top + "px";
+        el.style.right = "auto";
+        el.style.bottom = "auto";
+
+        startLeft = rect.left;
+        startTop = rect.top;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        handle.setPointerCapture(e.pointerId);
+      });
+
+      window.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        el.style.left = (startLeft + dx) + "px";
+        el.style.top = (startTop + dy) + "px";
+      });
+
+      window.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+    }
+
     // ARRANQUE
-    // --------------------------
     ensurePlayerData();
     updateSkillAndVision();
     renderTopBar();
@@ -2106,6 +2134,18 @@ if (!password) {
       document.getElementById("player-password").value = state.player.password || "";
       document.getElementById("player-avatar-mode").value = state.player.avatarMode || "male";
       document.getElementById("player-photo-url").value = state.player.avatarPhoto || "";
+    }
+
+    const currentPR = getCurrentManagedPR();
+    if (currentPR) {
+      document.getElementById("pr-company-name").value = currentPR.name || "";
+      document.getElementById("pr-contact").value = currentPR.ownerContact || "";
+      document.getElementById("pr-password").value = currentPR.ownerPassword || "";
+    }
+
+    const offlineBox = document.getElementById("offline-controls");
+    if (offlineBox) {
+      makeDraggable(offlineBox);
     }
   </script>
 </body>

@@ -1864,7 +1864,12 @@
           <div class="btn-row" style="justify-content:flex-start;">
             <button class="btn-dark" onclick="document.getElementById('mode-modal').classList.remove('hidden')">ESCOLHER MODO</button>
             <button class="btn-dark" onclick="manualRefreshFlags()">REFRESH BANDEIRAS</button>
-            <button class="btn-dark" onclick="showPRDashboard()">PAINEL PR</button>
+            <div class="btn-row" style="justify-content:flex-start;">
+  <button class="btn-dark" onclick="document.getElementById('mode-modal').classList.remove('hidden')">ESCOLHER MODO</button>
+  <button class="btn-dark" onclick="manualRefreshFlags()">REFRESH BANDEIRAS</button>
+  <button class="btn-danger" onclick="logoutPlayer()">TERMINAR SESSÃO</button>
+</div>
+
             <button class="btn-danger" onclick="logoutPlayer()">TERMINAR SESSÃO</button>
           </div>
         </div>

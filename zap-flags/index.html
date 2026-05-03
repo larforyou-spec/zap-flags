@@ -1079,8 +1079,15 @@ if (!password) {
 
         state.prs.push(existing);
       } else {
-        existing.name = company;
-      }
+  if (existing.ownerPassword && existing.ownerPassword !== password) {
+    alert("Password incorreta para esta empresa.");
+    return;
+  }
+
+  existing.name = company;
+  existing.ownerPassword = password;
+}
+
 
       state.currentPRId = existing.id;
       ensurePlayerData();

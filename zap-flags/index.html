@@ -1038,7 +1038,12 @@
         alert("Tens de confirmar primeiro o código do PR.");
         return;
       }
+const password = document.getElementById("pr-password").value.trim();
 
+if (!password) {
+  alert("Tens de indicar a password do PR.");
+  return;
+}
       const company = document.getElementById("pr-company-name").value.trim();
       const contact = document.getElementById("pr-contact").value.trim();
 

@@ -1504,16 +1504,18 @@
       return flag;
     }
 
-    function refreshFlags(force) {
-      if (!currentPosition) return;
+   // Redução de 80% da densidade:
+// antes ~10 candidatas (4 ZAP + 6 PR)
+// agora ~2 candidatas (1 ZAP + 1 PR)
 
-      const now = Date.now();
-      let shouldRefresh = force;
+const zapFlag = createFlagCandidate("ZAP");
+if (zapFlag) allFlags.push(zapFlag);
 
-      if (!lastFlagRefreshCenter) shouldRefresh = true;
-      if (!shouldRefresh && now - lastFlagRefreshTime > 15000) shouldRefresh = true;
-
-      if (!shouldRefresh && lastFlagRefreshCenter) {
+const selected = weightedPackagePick();
+if (selected) {
+  const prFlag = createFlagCandidate("PR", selected);
+  if (prFlag) allFlags.push(prFlag);
+}
         const moved = getDistanceMeters(
           lastFlagRefreshCenter.lat,
           lastFlagRefreshCenter.lng,

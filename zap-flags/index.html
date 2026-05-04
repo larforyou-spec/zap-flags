@@ -92,7 +92,6 @@
       margin-top: 10px;
     }
 
-    /* ECRÃS */
     #login-screen,
     #game-screen,
     #pr-screen {
@@ -118,7 +117,7 @@
 
     .login-box {
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       border: 2px solid #0f0;
       border-radius: 16px;
       background: rgba(0,20,0,.30);
@@ -179,7 +178,7 @@
       margin-top: 6px;
     }
 
-    /* GAME */
+    /* JOGO */
     #map-wrap {
       position: absolute;
       inset: 0;
@@ -271,47 +270,32 @@
       box-shadow: 0 0 10px rgba(0,255,0,.15);
     }
 
-  #offline-controls {
-  position: absolute;
-  left: 10px;
-  bottom: 90px;
-  z-index: 2600;
-  background: rgba(0,0,0,.88);
-  border: 1px solid #0f0;
-  border-radius: 12px;
-  padding: 8px;
-  width: 120px;
-  height: 120px;
-  text-align: center;
-  touch-action: none;
-  user-select: none;
-  cursor: move;
-}
+    /* OFFLINE */
+    #offline-controls {
+      position: absolute;
+      left: 10px;
+      bottom: 90px;
+      z-index: 2600;
+      background: rgba(0,0,0,.88);
+      border: 1px solid #0f0;
+      border-radius: 12px;
+      padding: 8px;
+      width: 118px;
+      height: 138px;
+      text-align: center;
+      touch-action: none;
+      user-select: none;
+      cursor: move;
+    }
 
-.drag-handle {
-  font-size: 14px;
-  color: #bfffbf;
-  margin-bottom: 4px;
-  padding: 2px;
-  border-bottom: 1px solid rgba(0,255,0,.25);
-}
+    .drag-handle {
+      font-size: 14px;
+      color: #bfffbf;
+      margin-bottom: 4px;
+      padding: 2px;
+      border-bottom: 1px solid rgba(0,255,0,.25);
+    }
 
-.dpad {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.dpad button {
-  padding: 8px;
-  font-size: 14px;
-  min-width: 0;
-}
-
-.dpad .empty {
-  visibility: hidden;
-}
     .offline-size-row {
       display: flex;
       justify-content: center;
@@ -347,7 +331,7 @@
       border: 2px solid #0f0;
       border-radius: 14px;
       padding: 12px;
-      max-height: 34vh;
+      max-height: 36vh;
       overflow-y: auto;
     }
 
@@ -390,7 +374,7 @@
       transform: translate(-50%, -50%);
       z-index: 3000;
       width: 92%;
-      max-width: 460px;
+      max-width: 480px;
       background: #000;
       border: 3px solid #0f0;
       border-radius: 14px;
@@ -429,6 +413,7 @@
       color: #fff;
     }
 
+    /* PR */
     #pr-screen {
       background: #000;
       z-index: 9998;
@@ -437,7 +422,7 @@
     }
 
     .pr-box {
-      max-width: 920px;
+      max-width: 980px;
       margin: 0 auto;
       border: 2px solid #0f0;
       border-radius: 14px;
@@ -450,6 +435,19 @@
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 10px;
+    }
+
+    .pack-card {
+      border: 1px solid #0f0;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(0,25,0,.18);
+    }
+
+    .pack-card.selected {
+      outline: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(255,255,255,.2);
     }
 
     .warning { color: #ffb347; font-weight: bold; }
@@ -561,6 +559,9 @@
         <input id="pr-contact" type="text" placeholder="Email ou nº de telefone" />
         <input id="pr-password" type="password" placeholder="Criar senha" />
         <input id="pr-password-confirm" type="password" placeholder="Confirmar senha" />
+        <input id="pr-postal-code" type="text" placeholder="Código postal da loja" />
+        <input id="pr-lat" type="text" placeholder="Latitude da loja (opcional)" />
+        <input id="pr-lng" type="text" placeholder="Longitude da loja (opcional)" />
 
         <div class="btn-row">
           <button onclick="registerAccount('PR')">REGISTAR</button>
@@ -597,24 +598,10 @@
       <button class="float-btn btn-dark" onclick="centerOnPlayer()">📍</button>
     </div>
 
-   <div id="offline-controls" class="hidden">
-  <div class="drag-handle">⋮⋮</div>
-  <div class="small"><b>OFFLINE</b><br>1m por toque</div>
+    <div id="offline-controls" class="hidden">
+      <div class="drag-handle">⋮⋮</div>
+      <div class="small"><b>OFFLINE</b><br>1m por toque</div>
 
-  <div class="dpad">
-    <div class="empty">.</div>
-    <button onclick="moveHomePlayer(0, 1)">⬆</button>
-    <div class="empty">.</div>
-
-    <button onclick="moveHomePlayer(-1, 0)">⬅</button>
-    <button onclick="manualRefreshFlags()">⟳</button>
-    <button onclick="moveHomePlayer(1, 0)">➡</button>
-
-    <div class="empty">.</div>
-    <button onclick="moveHomePlayer(0, -1)">⬇</button>
-    <div class="empty">.</div>
-  </div>
-</div>
       <div class="offline-size-row">
         <button class="btn-dark btn-small" onclick="resizeOfflineControls(-10)">A-</button>
         <button class="btn-dark btn-small" onclick="resizeOfflineControls(10)">A+</button>
@@ -644,7 +631,7 @@
     </div>
   </div>
 
-  <!-- MODO -->
+  <!-- MODAL MODO -->
   <div id="mode-modal" class="modal hidden">
     <div class="panel-header">
       <h2 style="margin:0;">Como queres jogar?</h2>
@@ -677,8 +664,7 @@
     <div class="pr-box">
       <h2>PAINEL DA EMPRESA / PR</h2>
       <div class="small">
-        Na primeira inscrição o PR recebe um pacote mínimo grátis sem ofertas.
-        Só os pacotes pagos permitem configurar prémios.
+        No primeiro registo o PR recebe 1 pacote mínimo grátis de 1.000 bandeiras sem ofertas.
       </div>
 
       <div class="btn-row" style="justify-content:flex-start; margin-bottom:16px;">
@@ -691,16 +677,38 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const STORAGE_KEY = "zap_flags_v6";
+    const STORAGE_KEY = "zap_flags_v7";
+
+    const FREE_PACK = { label: "Mínimo grátis", price: 0, flags: 1000, radiusKm: 5, paid: false, maxLots: 50, bingos: 0, key: "FREE" };
 
     const PACKS = {
-      MINIMO: { label: "Mínimo", flags: 1000, radiusKm: 5, paid: false, bingos: 0 },
-      MEDIO:  { label: "Médio",  flags: 2500, radiusKm: 15, paid: true, bingos: 2 },
-      GRANDE: { label: "Grande", flags: 10000, radiusKm: 50, paid: true, bingos: 3 },
-      ENORME: { label: "Enorme", flags: 25000, radiusKm: Infinity, paid: true, bingos: 5 }
+      MINIMO: { key: "MINIMO", label: "Mínimo", price: 10, flags: 1000, radiusKm: 5, paid: true, maxLots: 50, bingos: 0 },
+      MEDIO:  { key: "MEDIO", label: "Médio", price: 15, flags: 2500, radiusKm: 15, paid: true, maxLots: 125, bingos: 2 },
+      GRANDE: { key: "GRANDE", label: "Grande", price: 25, flags: 10000, radiusKm: 50, paid: true, maxLots: 500, bingos: 3 },
+      ENORME: { key: "ENORME", label: "Enorme", price: 50, flags: 25000, radiusKm: Infinity, paid: true, maxLots: 1250, bingos: 5 }
     };
 
+    let selectedPackKey = null;
+
+    function createPackageInstance(packDef, source = "paid") {
+      return {
+        id: randomId("PKG"),
+        key: packDef.key || "FREE",
+        label: packDef.label,
+        price: packDef.price,
+        flagsInitial: packDef.flags,
+        flagsLeft: packDef.flags,
+        radiusKm: packDef.radiusKm,
+        maxLots: packDef.maxLots,
+        bingos: packDef.bingos,
+        paid: packDef.paid,
+        source,
+        createdAt: Date.now()
+      };
+    }
+
     function seedPRs() {
+      const demoPack = createPackageInstance(PACKS.MEDIO, "demo");
       return [
         {
           id: "seed1",
@@ -711,20 +719,22 @@
           website: "https://cafe-central.pt",
           contact: "913000001",
           address: "Rua Central, Porto",
+          postalCode: "4000-100",
           photo: "",
           lat: 41.1496,
           lng: -8.6109,
           color: "#FF4D4F",
-          totalBought: 1000,
-          flagsLeft: 1000,
-          packRadiusKm: 5,
-          packHistory: ["MINIMO"],
-          rewardsEnabled: false,
-          maxRewards: 0,
-          rewardsGiven: 0,
-          promoFlagBudgetLeft: 0,
-          reward20: "Sem prémio",
-          bingosAvailable: 0
+          packages: [demoPack],
+          campaign: {
+            rewardsEnabled: true,
+            rewardType: "discount",
+            rewardText: "5% de desconto",
+            promoLotsActive: 10,
+            promoBudgetLeft: 200,
+            bingoCountActive: 1,
+            bingoText: "Oferta surpresa na loja",
+            rewardsGiven: 0
+          }
         }
       ];
     }
@@ -765,8 +775,20 @@
         if (!("currentPRId" in parsed)) parsed.currentPRId = null;
 
         parsed.prs.forEach(pr => {
-          if (!("ownerPassword" in pr)) pr.ownerPassword = "";
-          if (!("bingosAvailable" in pr)) pr.bingosAvailable = 0;
+          if (!pr.ownerPassword) pr.ownerPassword = "";
+          if (!pr.packages) pr.packages = [];
+          if (!pr.campaign) {
+            pr.campaign = {
+              rewardsEnabled: false,
+              rewardType: "none",
+              rewardText: "Sem prémio",
+              promoLotsActive: 0,
+              promoBudgetLeft: 0,
+              bingoCountActive: 0,
+              bingoText: "",
+              rewardsGiven: 0
+            };
+          }
         });
 
         return parsed;
@@ -785,7 +807,6 @@
     let allFlags = [];
     let offlineMode = false;
     let currentOpenPanel = null;
-
     let lastPosForEnergy = null;
     let movedMetersBuffer = 0;
     let lastMovementTime = Date.now();
@@ -815,21 +836,6 @@
       if (!words.length) return "PR";
       if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
       return (words[0][0] + words[1][0]).toUpperCase();
-    }
-
-    function hasPaidPack(pr) {
-      return pr.packHistory.some(k => PACKS[k] && PACKS[k].paid);
-    }
-
-    function ensurePlayerData() {
-      state.prs.forEach(pr => {
-        if (!state.player.promoProgressByPR[pr.id]) {
-          state.player.promoProgressByPR[pr.id] = { current: 0, total: 0 };
-        }
-        if (!state.player.totalSeenByPR[pr.id]) {
-          state.player.totalSeenByPR[pr.id] = 0;
-        }
-      });
     }
 
     function getDistanceMeters(lat1, lng1, lat2, lng2) {
@@ -895,10 +901,46 @@
       return Math.ceil(diff / (24 * 60 * 60 * 1000)) + " dia(s)";
     }
 
+    function ensurePlayerData() {
+      state.prs.forEach(pr => {
+        if (!state.player.promoProgressByPR[pr.id]) state.player.promoProgressByPR[pr.id] = { current: 0, total: 0 };
+        if (!state.player.totalSeenByPR[pr.id]) state.player.totalSeenByPR[pr.id] = 0;
+      });
+    }
+
+    function getPackageTotals(pr) {
+      const totalBought = pr.packages.reduce((acc, p) => acc + p.flagsInitial, 0);
+      const totalLeft = pr.packages.reduce((acc, p) => acc + p.flagsLeft, 0);
+      const maxLotsPaid = pr.packages.filter(p => p.paid).reduce((acc, p) => acc + p.maxLots, 0);
+      const totalBingosPaid = pr.packages.filter(p => p.paid).reduce((acc, p) => acc + p.bingos, 0);
+      const maxRadius = pr.packages.reduce((acc, p) => {
+        if (p.radiusKm === Infinity) return Infinity;
+        if (acc === Infinity) return Infinity;
+        return Math.max(acc, p.radiusKm);
+      }, 0);
+      const hasPaid = pr.packages.some(p => p.paid);
+      return { totalBought, totalLeft, maxLotsPaid, totalBingosPaid, maxRadius, hasPaid };
+    }
+
+    function contactAlreadyExists(contact, type) {
+      if (!contact) return false;
+
+      if (type === "JG") {
+        if (state.player.contact && state.player.contact === contact) return false;
+        if (state.prs.some(pr => pr.ownerContact === contact)) return true;
+      }
+
+      if (type === "PR") {
+        if (state.player.contact && state.player.contact === contact) return true;
+        if (state.prs.some(pr => pr.ownerContact === contact)) return true;
+      }
+
+      return false;
+    }
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function() {
-        navigator.serviceWorker.register("./service-worker.js")
-          .catch(err => console.log("Erro SW:", err));
+        navigator.serviceWorker.register("./service-worker.js").catch(err => console.log("Erro SW:", err));
       });
     }
 
@@ -919,24 +961,6 @@
         btnJG.classList.remove("active");
         btnPR.classList.add("active");
       }
-    }
-
-    function contactAlreadyExists(contact, type) {
-      if (!contact) return false;
-
-      if (type === "JG") {
-        if (state.player.contact && state.player.contact === contact) return false;
-      }
-
-      if (type === "PR") {
-        const existingPR = state.prs.find(pr => pr.ownerContact === contact);
-        if (existingPR) return true;
-      }
-
-      if (type === "JG" && state.prs.some(pr => pr.ownerContact === contact)) return true;
-      if (type === "PR" && state.player.contact === contact) return true;
-
-      return false;
     }
 
     function registerAccount(type) {
@@ -992,10 +1016,13 @@
         const contact = document.getElementById("pr-contact").value.trim();
         const password = document.getElementById("pr-password").value.trim();
         const confirmPassword = document.getElementById("pr-password-confirm").value.trim();
+        const postalCode = document.getElementById("pr-postal-code").value.trim();
+        const latValue = document.getElementById("pr-lat").value.trim();
+        const lngValue = document.getElementById("pr-lng").value.trim();
         const msg = document.getElementById("pr-auth-msg");
 
         if (!company || !contact || !password || !confirmPassword) {
-          msg.innerHTML = "Preenche todos os campos.";
+          msg.innerHTML = "Preenche nome, contacto e senhas.";
           return;
         }
 
@@ -1007,6 +1034,19 @@
         if (contactAlreadyExists(contact, "PR")) {
           msg.innerHTML = "Esse email/telefone já está em uso.";
           return;
+        }
+
+        if (!postalCode && (!latValue || !lngValue)) {
+          msg.innerHTML = "Indica código postal ou coordenadas GPS da loja.";
+          return;
+        }
+
+        let lat = 38.7223;
+        let lng = -9.1393;
+
+        if (latValue && lngValue && !isNaN(parseFloat(latValue)) && !isNaN(parseFloat(lngValue))) {
+          lat = parseFloat(latValue);
+          lng = parseFloat(lngValue);
         }
 
         const palette = ["#FF4D4F", "#1677FF", "#52C41A", "#FADB14", "#722ED1", "#FA8C16"];
@@ -1021,20 +1061,22 @@
           website: "",
           contact: contact,
           address: "",
+          postalCode: postalCode,
           photo: "",
-          lat: 38.7223,
-          lng: -9.1393,
+          lat,
+          lng,
           color,
-          totalBought: PACKS.MINIMO.flags,
-          flagsLeft: PACKS.MINIMO.flags,
-          packRadiusKm: PACKS.MINIMO.radiusKm,
-          packHistory: ["MINIMO"],
-          rewardsEnabled: false,
-          maxRewards: 0,
-          rewardsGiven: 0,
-          promoFlagBudgetLeft: 0,
-          reward20: "Sem prémio",
-          bingosAvailable: PACKS.MINIMO.bingos
+          packages: [createPackageInstance(FREE_PACK, "free-register")],
+          campaign: {
+            rewardsEnabled: false,
+            rewardType: "none",
+            rewardText: "Sem prémio",
+            promoLotsActive: 0,
+            promoBudgetLeft: 0,
+            bingoCountActive: 0,
+            bingoText: "",
+            rewardsGiven: 0
+          }
         };
 
         state.prs.push(pr);
@@ -1106,7 +1148,7 @@
         const msg = document.getElementById("jg-auth-msg");
 
         if (!contact) {
-          msg.innerHTML = "Indica o email/telefone.";
+          msg.innerHTML = "Indica primeiro o email/telefone.";
           return;
         }
 
@@ -1130,7 +1172,7 @@
         const msg = document.getElementById("pr-auth-msg");
 
         if (!contact) {
-          msg.innerHTML = "Indica o email/telefone.";
+          msg.innerHTML = "Indica primeiro o email/telefone.";
           return;
         }
 
@@ -1220,10 +1262,13 @@
       });
     }
 
+    let gpsCenteredOnce = false;
+
     function requestGPSMode() {
       document.getElementById("mode-modal").classList.add("hidden");
       document.getElementById("offline-controls").classList.add("hidden");
       offlineMode = false;
+      gpsCenteredOnce = false;
       renderTopBar();
 
       if (!navigator.geolocation) {
@@ -1238,9 +1283,9 @@
 
       navigator.geolocation.getCurrentPosition(
         pos => {
-          updatePosition(pos);
+          updatePosition(pos, true);
           watchId = navigator.geolocation.watchPosition(
-            updatePosition,
+            p => updatePosition(p, false),
             handleGeoError,
             {
               enableHighAccuracy: true,
@@ -1286,13 +1331,14 @@
       activateHomeMode();
     }
 
-    function updatePosition(position) {
+    function updatePosition(position, forceCenter = false) {
       updatePlayerLocation(
         position.coords.latitude,
         position.coords.longitude,
         true,
-        true
+        forceCenter || !gpsCenteredOnce
       );
+      gpsCenteredOnce = true;
     }
 
     function updatePlayerLocation(lat, lng, fromMovement, centerMap) {
@@ -1300,7 +1346,6 @@
 
       if (lastPosForEnergy && fromMovement) {
         const moved = getDistanceMeters(lastPosForEnergy.lat, lastPosForEnergy.lng, lat, lng);
-
         if (moved > 0.5) {
           movedMetersBuffer += moved;
           lastMovementTime = Date.now();
@@ -1363,7 +1408,6 @@
 
       const lat = currentPosition.lat + (dyMeters / 111320);
       const lng = currentPosition.lng + (dxMeters / (111320 * Math.cos(currentPosition.lat * Math.PI / 180)));
-
       updatePlayerLocation(lat, lng, true, true);
       manualRefreshFlags();
     }
@@ -1373,8 +1417,8 @@
       const currentW = parseInt(box.style.width || box.offsetWidth, 10);
       const currentH = parseInt(box.style.height || box.offsetHeight, 10);
 
-      const nextW = Math.max(90, Math.min(160, currentW + delta));
-      const nextH = Math.max(110, Math.min(190, currentH + delta));
+      const nextW = Math.max(95, Math.min(180, currentW + delta));
+      const nextH = Math.max(115, Math.min(200, currentH + delta));
 
       box.style.width = nextW + "px";
       box.style.height = nextH + "px";
@@ -1387,24 +1431,34 @@
       allFlags = [];
     }
 
-    function weightedPRPick() {
+    function getAllActivePackages() {
+      const list = [];
+      state.prs.forEach(pr => {
+        pr.packages.forEach(pkg => {
+          if (pkg.flagsLeft > 0) {
+            list.push({ pr, pkg });
+          }
+        });
+      });
+      return list;
+    }
+
+    function weightedPackagePick() {
       if (!currentPosition) return null;
 
-      const candidates = state.prs
-        .filter(pr => pr.flagsLeft > 0)
-        .map(pr => {
-          const distKm = getDistanceMeters(currentPosition.lat, currentPosition.lng, pr.lat, pr.lng) / 1000;
-          let weight = 0.15;
+      const candidates = getAllActivePackages().map(({ pr, pkg }) => {
+        const distKm = getDistanceMeters(currentPosition.lat, currentPosition.lng, pr.lat, pr.lng) / 1000;
+        let weight = 0.1;
 
-          if (pr.packRadiusKm === Infinity) {
-            weight = 1.6;
-          } else if (distKm <= pr.packRadiusKm) {
-            const closeness = 1 - (distKm / pr.packRadiusKm);
-            weight = 1 + closeness * 4.5;
-          }
+        if (pkg.radiusKm === Infinity) {
+          weight = 1.5;
+        } else if (distKm <= pkg.radiusKm) {
+          const closeness = 1 - (distKm / pkg.radiusKm);
+          weight = 1 + closeness * 4.5;
+        }
 
-          return { pr, weight };
-        });
+        return { pr, pkg, weight };
+      });
 
       const total = candidates.reduce((acc, c) => acc + c.weight, 0);
       if (!total) return null;
@@ -1412,22 +1466,22 @@
       let rnd = Math.random() * total;
       for (const c of candidates) {
         rnd -= c.weight;
-        if (rnd <= 0) return c.pr;
+        if (rnd <= 0) return c;
       }
-      return candidates[0].pr;
+      return candidates[0];
     }
 
-    function promoChanceForPR(pr) {
-      if (!pr.rewardsEnabled) return 0;
-      if (pr.maxRewards <= pr.rewardsGiven) return 0;
-      if (pr.promoFlagBudgetLeft <= 0) return 0;
+    function promoChanceForPackage(pr, pkg) {
+      if (!pkg.paid) return 0;
+      if (!pr.campaign.rewardsEnabled) return 0;
+      if (pr.campaign.promoBudgetLeft <= 0) return 0;
 
-      const ratio = pr.promoFlagBudgetLeft / Math.max(pr.flagsLeft, 1);
-      const scaled = ratio * 5000;
+      const ratio = pr.campaign.promoBudgetLeft / Math.max(pkg.flagsLeft, 1);
+      const scaled = ratio * 500;
       return Math.max(0.05, Math.min(0.30, scaled));
     }
 
-    function createFlagCandidate(type, pr = null) {
+    function createFlagCandidate(type, selected = null) {
       if (!currentPosition) return null;
 
       const radius = 1 + Math.random() * 50;
@@ -1441,9 +1495,10 @@
         marker: null
       };
 
-      if (type === "PR" && pr) {
-        flag.prId = pr.id;
-        flag.promo = Math.random() < promoChanceForPR(pr);
+      if (type === "PR" && selected) {
+        flag.prId = selected.pr.id;
+        flag.packageId = selected.pkg.id;
+        flag.promo = Math.random() < promoChanceForPackage(selected.pr, selected.pkg);
       }
 
       return flag;
@@ -1478,9 +1533,9 @@
       }
 
       for (let i = 0; i < 6; i++) {
-        const pr = weightedPRPick();
-        if (!pr) continue;
-        const f = createFlagCandidate("PR", pr);
+        const selected = weightedPackagePick();
+        if (!selected) continue;
+        const f = createFlagCandidate("PR", selected);
         if (f) allFlags.push(f);
       }
 
@@ -1507,7 +1562,6 @@
               icon: createFlagIcon(pr.color)
             }).addTo(map);
           }
-
           flag.marker.on("click", () => openFlagModal(flag.id));
         }
 
@@ -1662,9 +1716,12 @@
       const pr = findPR(flag.prId);
       if (!pr) return;
 
-      ensurePlayerData();
+      const pkg = pr.packages.find(p => p.id === flag.packageId);
+      if (pkg && pkg.flagsLeft > 0) {
+        pkg.flagsLeft -= 1;
+      }
 
-      if (pr.flagsLeft > 0) pr.flagsLeft -= 1;
+      ensurePlayerData();
 
       state.player.prFlags += 1;
       state.player.totalFlags += 1;
@@ -1674,8 +1731,8 @@
       let body = "";
       let rewardBox = "";
 
-      if (flag.promo && pr.rewardsEnabled && pr.promoFlagBudgetLeft > 0) {
-        pr.promoFlagBudgetLeft -= 1;
+      if (flag.promo && pr.campaign.rewardsEnabled && pr.campaign.promoBudgetLeft > 0) {
+        pr.campaign.promoBudgetLeft -= 1;
         state.player.promoProgressByPR[pr.id].current += 1;
         state.player.promoProgressByPR[pr.id].total += 1;
       }
@@ -1683,17 +1740,20 @@
       const totalSeen = state.player.totalSeenByPR[pr.id];
       const promoCurrent = state.player.promoProgressByPR[pr.id].current;
 
-      if (promoCurrent >= 20 && pr.rewardsGiven < pr.maxRewards) {
+      if (
+        promoCurrent >= 20 &&
+        pr.campaign.rewardsEnabled &&
+        pr.campaign.rewardsGiven < pr.campaign.promoLotsActive
+      ) {
         state.player.promoProgressByPR[pr.id].current -= 20;
-        pr.rewardsGiven += 1;
-
+        pr.campaign.rewardsGiven += 1;
         generateQR(pr);
 
         title = "🎉 PRÉMIO DESBLOQUEADO";
         body = `Atingiste o conjunto promocional de <b>20 bandeiras</b> da empresa <b>${pr.name}</b>.`;
         rewardBox = `
           <div class="item">
-            <b>Prémio:</b> ${pr.reward20}<br>
+            <b>Prémio:</b> ${pr.campaign.rewardText}<br>
             <b>QR criado com sucesso.</b>
           </div>
         `;
@@ -1710,8 +1770,11 @@
       }
 
       removeFlag(flagId);
-      const replacement = createFlagCandidate("PR", pr);
-      if (replacement) allFlags.push(replacement);
+      const selected = weightedPackagePick();
+      if (selected) {
+        const replacement = createFlagCandidate("PR", selected);
+        if (replacement) allFlags.push(replacement);
+      }
 
       renderTopBar();
       renderPanelIfOpen();
@@ -1751,7 +1814,7 @@
         code: "ZAP-" + pr.short + "-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
         prId: pr.id,
         prName: pr.name,
-        rewardText: pr.reward20,
+        rewardText: pr.campaign.rewardText || "Oferta",
         createdAt: Date.now(),
         expiresAt: Date.now() + (15 * 24 * 60 * 60 * 1000),
         status: "active"
@@ -1867,7 +1930,6 @@
       state.prs.forEach(pr => {
         const promo = state.player.promoProgressByPR[pr.id] || { current: 0, total: 0 };
         const total = state.player.totalSeenByPR[pr.id] || 0;
-
         if (total === 0 && promo.total === 0) return;
 
         html += `
@@ -1878,7 +1940,7 @@
               Total da empresa apanhadas: ${total}<br>
               Promocionais acumuladas: ${promo.current} / 20<br>
               Promocionais totais: ${promo.total}<br>
-              Oferta configurada: ${pr.rewardsEnabled ? pr.reward20 : "Sem prémio"}
+              Oferta configurada: ${pr.campaign.rewardsEnabled ? pr.campaign.rewardText : "Sem prémio"}
             </div>
           </div>
         `;
@@ -1950,9 +2012,7 @@
       if (mode) state.player.avatarMode = mode.value;
       if (photo) state.player.avatarPhoto = photo.value.trim();
 
-      if (playerMarker) {
-        playerMarker.setIcon(createPlayerIcon());
-      }
+      if (playerMarker) playerMarker.setIcon(createPlayerIcon());
 
       saveState();
       renderPanelIfOpen();
@@ -1964,25 +2024,26 @@
       location.reload();
     }
 
-    function buyPackForCurrentPR(packKey) {
+    function selectPackage(packKey) {
+      selectedPackKey = packKey;
+      renderPRDashboard();
+    }
+
+    function purchaseSelectedPackage(method) {
       const pr = getCurrentManagedPR();
-      const pack = PACKS[packKey];
-      if (!pr || !pack) return;
-
-      pr.totalBought += pack.flags;
-      pr.flagsLeft += pack.flags;
-      pr.packHistory.push(packKey);
-      pr.bingosAvailable += pack.bingos;
-
-      if (pack.radiusKm === Infinity) {
-        pr.packRadiusKm = Infinity;
-      } else {
-        pr.packRadiusKm = Math.max(pr.packRadiusKm, pack.radiusKm);
+      if (!pr) return;
+      if (!selectedPackKey || !PACKS[selectedPackKey]) {
+        alert("Seleciona primeiro um pacote.");
+        return;
       }
 
+      const packDef = PACKS[selectedPackKey];
+      pr.packages.push(createPackageInstance(packDef, method));
+
       saveState();
+      alert(`Pagamento por ${method} simulado com sucesso. Pacote ${packDef.label} ativado.`);
+      selectedPackKey = null;
       renderPRDashboard();
-      alert("Pacote " + pack.label + " adicionado.");
     }
 
     function savePRSettings() {
@@ -1994,22 +2055,31 @@
       pr.address = document.getElementById("pr-edit-address").value.trim();
       pr.photo = document.getElementById("pr-edit-photo").value.trim();
 
+      const totals = getPackageTotals(pr);
+
       const wantsRewards = document.getElementById("pr-enable-rewards").checked;
-      const maxRewards = parseInt(document.getElementById("pr-max-rewards").value || "0", 10);
-      const reward20 = document.getElementById("pr-reward20").value.trim() || "Sem prémio";
+      const rewardType = document.getElementById("pr-reward-type").value;
+      const rewardText = document.getElementById("pr-reward20").value.trim() || "Sem prémio";
+      const promoLotsActive = parseInt(document.getElementById("pr-promo-lots").value || "0", 10);
+      const bingoCountActive = parseInt(document.getElementById("pr-bingo-count").value || "0", 10);
+      const bingoText = document.getElementById("pr-bingo-text").value.trim();
 
-      if (!hasPaidPack(pr)) {
-        pr.rewardsEnabled = false;
-        pr.maxRewards = 0;
-        pr.reward20 = "Sem prémio";
-        pr.promoFlagBudgetLeft = 0;
+      if (!totals.hasPaid) {
+        pr.campaign.rewardsEnabled = false;
+        pr.campaign.rewardType = "none";
+        pr.campaign.rewardText = "Sem prémio";
+        pr.campaign.promoLotsActive = 0;
+        pr.campaign.promoBudgetLeft = 0;
+        pr.campaign.bingoCountActive = 0;
+        pr.campaign.bingoText = "";
       } else {
-        pr.rewardsEnabled = wantsRewards;
-        pr.maxRewards = Math.max(0, maxRewards);
-        pr.reward20 = wantsRewards ? reward20 : "Sem prémio";
-
-        const remainingRewardSlots = Math.max(0, pr.maxRewards - pr.rewardsGiven);
-        pr.promoFlagBudgetLeft = wantsRewards ? (remainingRewardSlots * 20) : 0;
+        pr.campaign.rewardsEnabled = wantsRewards;
+        pr.campaign.rewardType = wantsRewards ? rewardType : "none";
+        pr.campaign.rewardText = wantsRewards ? rewardText : "Sem prémio";
+        pr.campaign.promoLotsActive = wantsRewards ? Math.max(0, Math.min(totals.maxLotsPaid, promoLotsActive)) : 0;
+        pr.campaign.promoBudgetLeft = pr.campaign.promoLotsActive * 20;
+        pr.campaign.bingoCountActive = Math.max(0, Math.min(totals.totalBingosPaid, bingoCountActive));
+        pr.campaign.bingoText = pr.campaign.bingoCountActive > 0 ? bingoText : "";
       }
 
       saveState();
@@ -2018,13 +2088,18 @@
     }
 
     function getStockWarning(pr) {
-      const total = Math.max(pr.totalBought, 1);
-      const pct = (pr.flagsLeft / total) * 100;
+      const totals = getPackageTotals(pr);
+      const total = Math.max(totals.totalBought, 1);
+      const pct = (totals.totalLeft / total) * 100;
 
       if (pct <= 5) return `<span class="danger">Restam menos de 5% das bandeiras.</span>`;
       if (pct <= 10) return `<span class="warning">Restam menos de 10% das bandeiras.</span>`;
       if (pct <= 20) return `<span class="warning">Restam menos de 20% das bandeiras.</span>`;
       return `<span class="ok">Campanha ativa.</span>`;
+    }
+
+    function packageRadiusText(radiusKm) {
+      return radiusKm === Infinity ? "País inteiro" : `${radiusKm} km`;
     }
 
     function renderPRDashboard() {
@@ -2036,37 +2111,69 @@
         return;
       }
 
-      const radiusText = pr.packRadiusKm === Infinity ? "País inteiro" : `${pr.packRadiusKm} km`;
-      const paid = hasPaidPack(pr);
+      const totals = getPackageTotals(pr);
+
+      const packCards = Object.values(PACKS).map(pack => `
+        <div class="pack-card ${selectedPackKey === pack.key ? 'selected' : ''}">
+          <b>${pack.label}</b> ${selectedPackKey === pack.key ? "✅" : ""}<br>
+          <div class="small">
+            Preço: ${pack.price}€<br>
+            Bandeiras: ${pack.flags.toLocaleString()}<br>
+            Área: ${packageRadiusText(pack.radiusKm)}<br>
+            Lotes máximos: ${pack.maxLots}<br>
+            Bingos: ${pack.bingos}
+          </div>
+          <div class="btn-row" style="justify-content:flex-start;">
+            <button onclick="selectPackage('${pack.key}')">Selecionar</button>
+          </div>
+        </div>
+      `).join("");
+
+      const purchasedList = pr.packages.map(pkg => `
+        <div class="item">
+          <b>${pkg.label}</b> ${pkg.paid ? "" : "(grátis)"}<br>
+          <div class="small">
+            Preço: ${pkg.price}€<br>
+            Bandeiras iniciais: ${pkg.flagsInitial.toLocaleString()}<br>
+            Bandeiras restantes: ${pkg.flagsLeft.toLocaleString()}<br>
+            Área: ${packageRadiusText(pkg.radiusKm)}<br>
+            Lotes possíveis: ${pkg.maxLots}<br>
+            Bingos: ${pkg.bingos}
+          </div>
+        </div>
+      `).join("");
 
       content.innerHTML = `
         <div class="item">
           <b>Empresa:</b> ${pr.name}<br>
           <b>Contacto dono:</b> ${pr.ownerContact}<br>
-          <b>Bandeiras restantes:</b> ${pr.flagsLeft.toLocaleString()}<br>
-          <b>Total comprado:</b> ${pr.totalBought.toLocaleString()}<br>
-          <b>Raio da campanha:</b> ${radiusText}<br>
-          <b>Bingos disponíveis:</b> ${pr.bingosAvailable}<br>
+          <b>Código postal:</b> ${pr.postalCode || "—"}<br>
+          <b>Coordenadas:</b> ${pr.lat.toFixed(5)}, ${pr.lng.toFixed(5)}<br>
+          <b>Total comprado:</b> ${totals.totalBought.toLocaleString()} bandeiras<br>
+          <b>Total restante:</b> ${totals.totalLeft.toLocaleString()} bandeiras<br>
+          <b>Área máxima atual:</b> ${packageRadiusText(totals.maxRadius)}<br>
           ${getStockWarning(pr)}
         </div>
 
         <div class="item">
-          <b>Pacote mínimo grátis</b><br>
-          1.000 bandeiras / 5 km / sem ofertas.
+          <b>Pacote inicial grátis</b><br>
+          1.000 bandeiras · 5 km · 50 lotes · sem ofertas
         </div>
 
         <div class="item">
-          <b>Comprar pacotes pagos</b>
-          <div class="pack-row">
-            <button onclick="buyPackForCurrentPR('MEDIO')">MÉDIO</button>
-            <button onclick="buyPackForCurrentPR('GRANDE')">GRANDE</button>
-            <button onclick="buyPackForCurrentPR('ENORME')">ENORME</button>
+          <b>Pacotes disponíveis</b><br>
+          <div class="small">Seleciona um pacote e escolhe a forma de pagamento.</div>
+          ${packCards}
+          <div class="btn-row" style="justify-content:flex-start;">
+            <button onclick="purchaseSelectedPackage('QR')">Pagar por QR</button>
+            <button class="btn-dark" onclick="purchaseSelectedPackage('Referência')">Pagar por Referência</button>
+            <button class="btn-dark" onclick="purchaseSelectedPackage('Transferência')">Pagar por Transferência</button>
           </div>
-          <div class="small" style="margin-top:8px;">
-            Médio: 2.500 + 2 bingos / 15 km<br>
-            Grande: 10.000 + 3 bingos / 50 km<br>
-            Enorme: 25.000 + 5 bingos / país inteiro
-          </div>
+        </div>
+
+        <div class="item">
+          <b>Pacotes comprados</b><br>
+          ${purchasedList || "Ainda não tens pacotes."}
         </div>
 
         <div class="item">
@@ -2078,20 +2185,32 @@
         </div>
 
         <div class="item">
-          <b>Prémios / Ofertas</b><br><br>
+          <b>Configuração da campanha</b><br><br>
           <label style="display:block; margin-bottom:10px;">
-            <input type="checkbox" id="pr-enable-rewards" ${pr.rewardsEnabled ? "checked" : ""} ${paid ? "" : "disabled"} />
-            Ativar prémios neste pacote
+            <input type="checkbox" id="pr-enable-rewards" ${pr.campaign.rewardsEnabled ? "checked" : ""} ${totals.hasPaid ? "" : "disabled"} />
+            Ativar ofertas nesta campanha
           </label>
 
-          <input id="pr-max-rewards" type="number" min="0" value="${pr.maxRewards || 0}" ${paid ? "" : "disabled"} placeholder="Nº máximo de prémios" />
-          <input id="pr-reward20" type="text" value="${pr.reward20 && pr.reward20 !== "Sem prémio" ? pr.reward20 : ""}" ${paid ? "" : "disabled"} placeholder="Ex: 5% desconto, café, almoço até 30€" />
+          <select id="pr-reward-type" ${totals.hasPaid ? "" : "disabled"}>
+            <option value="discount" ${pr.campaign.rewardType === "discount" ? "selected" : ""}>Percentagem de desconto</option>
+            <option value="gift" ${pr.campaign.rewardType === "gift" ? "selected" : ""}>Oferta física</option>
+            <option value="none" ${pr.campaign.rewardType === "none" ? "selected" : ""}>Sem prémio</option>
+          </select>
+
+          <input id="pr-reward20" type="text" value="${pr.campaign.rewardText && pr.campaign.rewardText !== "Sem prémio" ? pr.campaign.rewardText : ""}" ${totals.hasPaid ? "" : "disabled"} placeholder="Ex: 5% desconto, 1 café, almoço até 30€" />
+
+          <input id="pr-promo-lots" type="number" min="0" max="${totals.maxLotsPaid}" value="${pr.campaign.promoLotsActive || 0}" ${totals.hasPaid ? "" : "disabled"} placeholder="Quantidade de lotes promocionais" />
 
           <div class="small">
-            ${paid
-              ? `Se ativares <b>${pr.maxRewards || 0}</b> prémios, o sistema ativa até <b>${(pr.maxRewards || 0) * 20}</b> bandeiras promocionais.`
-              : `Sem pacote pago: não podes ativar ofertas.`
-            }
+            Máximo de lotes possíveis: <b>${totals.maxLotsPaid}</b><br>
+            Cada lote consome 20 bandeiras promocionais.
+          </div>
+
+          <input id="pr-bingo-count" type="number" min="0" max="${totals.totalBingosPaid}" value="${pr.campaign.bingoCountActive || 0}" ${totals.totalBingosPaid > 0 ? "" : "disabled"} placeholder="Quantidade de bingos ativos" />
+          <input id="pr-bingo-text" type="text" value="${pr.campaign.bingoText || ""}" ${totals.totalBingosPaid > 0 ? "" : "disabled"} placeholder="Oferta surpresa na loja" />
+
+          <div class="small">
+            Bingos disponíveis: <b>${totals.totalBingosPaid}</b>
           </div>
 
           <div class="btn-row" style="justify-content:flex-start;">
@@ -2172,6 +2291,7 @@
       });
     }
 
+    // Arranque
     ensurePlayerData();
     updateSkillAndVision();
     renderTopBar();
@@ -2190,6 +2310,9 @@
       document.getElementById("pr-company-name").value = currentPR.name || "";
       document.getElementById("pr-contact").value = currentPR.ownerContact || "";
       document.getElementById("pr-password").value = currentPR.ownerPassword || "";
+      document.getElementById("pr-postal-code").value = currentPR.postalCode || "";
+      document.getElementById("pr-lat").value = currentPR.lat || "";
+      document.getElementById("pr-lng").value = currentPR.lng || "";
     }
 
     const offlineBox = document.getElementById("offline-controls");
@@ -2199,7 +2322,3 @@
   </script>
 </body>
 </html>
-const offlineBox = document.getElementById("offline-controls");
-if (offlineBox) {
-  makeDraggable(offlineBox);
-}

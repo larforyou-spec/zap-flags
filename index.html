@@ -1539,3 +1539,1103 @@
     .game-map-vp .flag-pin { position: absolute; transform: translate(-50%, -50%); z-index: 4; }
     .game-map-vp .dormant { opacity: 0.35; pointer-events: none; }
     .game-map-vp .bingo-glow { box-shadow: 0 0 18px 4px rgba(255, 204, 0, 0.65); }
+/* Offline mock map inside game layer */
+    .game-map-vp .game-offline-bg {
+      position: absolute; inset: -80%; z-index: 2;
+      background:
+        linear-gradient(28deg, transparent 0 43%, rgba(255,255,255,0.82) 43% 45%, transparent 45%),
+        linear-gradient(118deg, transparent 0 48%, rgba(255,255,255,0.72) 48% 50%, transparent 50%),
+        linear-gradient(88deg, transparent 0 52%, rgba(255,255,255,0.58) 52% 53.4%, transparent 53.4%),
+        linear-gradient(0deg, transparent 0 38%, rgba(255,255,255,0.52) 38% 39.4%, transparent 39.4%),
+        radial-gradient(circle at 28% 32%, rgba(66,215,125,0.42), transparent 7%),
+        radial-gradient(circle at 68% 58%, rgba(122,215,255,0.34), transparent 9%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 72px),
+        #8ec7a3;
+      transform: translate(var(--map-shift-x, 0px), var(--map-shift-y, 0px));
+      transition: transform .16s linear;
+    }
+
+    .game-wallet-pill {
+      position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 10;
+      background: linear-gradient(135deg, rgba(24,52,38,0.92), rgba(8,18,14,0.9));
+      border: 1px solid var(--accent); border-radius: 16px;
+      padding: 6px 18px; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(66,215,125,0.18);
+      pointer-events: auto; cursor: pointer;
+    }
+    .game-wallet-pill .gw-icon { font-size: 18px; }
+    .game-wallet-pill .gw-amount { font-size: 16px; font-weight: 900; color: var(--gold, #d7b35a); }
+    .game-wallet-pill .gw-label { font-size: 10px; color: var(--muted); }
+
+    .game-hud-top {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+      background: linear-gradient(180deg, rgba(5,8,7,0.92) 0%, rgba(5,8,7,0.4) 70%, transparent);
+      pointer-events: none;
+    }
+    .game-hud-top > * { pointer-events: auto; }
+    .game-hud-brand { display: flex; align-items: center; gap: 8px; }
+    .game-hud-brand img { height: 28px; border-radius: 6px; }
+    .game-hud-brand span { font-weight: 900; font-size: 13px; color: var(--green); letter-spacing: 0.04em; }
+    .game-hud-stats { display: flex; gap: 6px; align-items: center; }
+    .game-hud-stat {
+      padding: 4px 8px; border-radius: 10px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12);
+      font-size: 12px; font-weight: 700; color: var(--text);
+    }
+    .game-menu-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .game-menu-btn:hover { background: rgba(66,215,125,0.25); }
+
+    .game-menu-panel {
+      position: absolute; top: 50px; right: 10px; z-index: 15;
+      background: var(--panel-strong); border: 1px solid rgba(66,215,125,0.25);
+      border-radius: 14px; padding: 6px; min-width: 170px;
+      box-shadow: var(--shadow); animation: tutSlideUp 0.15s ease;
+    }
+    .game-menu-panel.hidden { display: none; }
+    .game-menu-panel button {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; border-radius: 10px;
+      background: transparent; border: none; color: var(--text);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-align: left; width: 100%;
+    }
+    .game-menu-panel button:hover { background: rgba(66,215,125,0.12); }
+
+    .game-hud-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px max(12px, env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(5,8,7,0.92) 0%, rgba(5,8,7,0.4) 70%, transparent);
+      pointer-events: none;
+    }
+    .game-hud-bottom > * { pointer-events: auto; }
+    .game-hud-actions { display: flex; gap: 6px; }
+    .game-hud-actions button {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text); font-size: 17px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .game-hud-actions button:hover { background: rgba(66,215,125,0.25); }
+    .game-badge {
+      padding: 5px 10px; border-radius: 10px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px; font-weight: 700; color: var(--muted);
+    }
+
+    .game-ticker {
+      position: absolute; bottom: 56px; left: 0; right: 0; z-index: 8;
+      overflow: hidden; height: 24px; background: rgba(0,0,0,0.4);
+    }
+    .game-ticker .game-ticker-inner {
+      display: flex; gap: 60px; white-space: nowrap;
+      animation: tickerScroll 25s linear infinite;
+      padding: 3px 0; font-size: 12px; color: var(--green-soft);
+    }
+    .game-ticker .jackpot-msg {
+      color: #ffcc00; text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+    }
+    /* QR Market Styles */
+    .info-box {
+      background: rgba(53, 255, 122, 0.1);
+      border: 1px solid var(--green);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+    .info-box ul {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+    }
+    .info-box li {
+      margin: 4px 0;
+      font-size: 12px;
+    }
+    .badge.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .badge.danger {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
+      border: 1px solid rgba(255, 71, 87, 0.3);
+    }
+    .qr-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed !important;
+      transform: none !important;
+    }
+    .qr-card.disabled:hover {
+      transform: none !important;
+      box-shadow: var(--shadow) !important;
+    }
+
+    /* Bingo Selection Styles */
+    .bingo-card {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .bingo-card.selected {
+      border: 2px solid var(--green);
+      background: linear-gradient(135deg, rgba(53, 255, 122, 0.1), rgba(53, 255, 122, 0.05));
+      transform: scale(1.02);
+    }
+    .selection-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--green);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    .bulk-actions-panel {
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Porta-moedas Styles */
+    .wallet-display {
+      background: linear-gradient(135deg, rgba(53, 255, 122, 0.1), rgba(53, 255, 122, 0.05));
+      border: 1px solid var(--green);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .wallet-display .coins-amount { font-size: 18px; font-weight: bold; color: var(--green); }
+    .wallet-display .coins-icon { font-size: 20px; margin-right: 8px; }
+    .wallet-display .wallet-label { font-size: 12px; color: var(--text); opacity: 0.8; }
+    .wallet-header {
+      background: var(--panel-strong);
+      border: 1px solid var(--green);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .wallet-header .coins-amount { font-size: 24px; font-weight: bold; color: var(--green); margin: 8px 0; }
+    .wallet-header .coins-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+
+    /* QRs do jogador à venda */
+    .qr-card.own-qr {
+      background: linear-gradient(135deg, rgba(53, 255, 122, 0.1), rgba(53, 255, 122, 0.05));
+      border: 2px solid var(--green);
+      position: relative;
+    }
+    .qr-card.own-qr::before {
+      content: "MEU QR";
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--green);
+      color: var(--bg);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .qr-card.own-qr .badge { background: var(--green); color: var(--bg); }
+
+    /* Relógio decrescente */
+    .countdown-timer {
+      background: linear-gradient(135deg, rgba(255, 71, 87, 0.1), rgba(255, 71, 87, 0.05));
+      border: 1px solid rgba(255, 71, 87, 0.3);
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: #ff4757;
+      font-size: 14px;
+    }
+    .countdown-timer.urgent {
+      background: rgba(255, 71, 87, 0.2);
+      border-color: #ff4757;
+      animation: pulse 1s infinite;
+    }
+    .countdown-timer.expired {
+      background: rgba(108, 117, 125, 0.1);
+      border-color: rgba(108, 117, 125, 0.3);
+      color: #6c757d;
+      animation: none;
+    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    .timer-label { font-size: 10px; color: var(--text); opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Dormant Flag Styles */
+    .flag-pin.dormant { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+    .flag-pin.awakening { animation: flagAwaken 0.6s ease forwards; }
+    @keyframes flagAwaken { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); } 60% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    .flag-pin.bingo-glow { box-shadow: 0 0 18px 6px rgba(215, 179, 90, 0.7), 0 0 40px 12px rgba(215, 179, 90, 0.3); border-color: var(--yellow); animation: bingoGlow 1s ease infinite alternate; }
+    @keyframes bingoGlow { from { box-shadow: 0 0 18px 6px rgba(215, 179, 90, 0.7), 0 0 40px 12px rgba(215, 179, 90, 0.3); } to { box-shadow: 0 0 28px 10px rgba(215, 179, 90, 0.9), 0 0 60px 18px rgba(215, 179, 90, 0.5); } }
+
+    /* Dynamic Ticker */
+    .map-ticker { position: relative; overflow: hidden; height: 32px; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(53, 255, 122, 0.18); border-radius: 10px; margin-top: 8px; }
+    .map-ticker-inner { display: flex; gap: 60px; white-space: nowrap; animation: tickerScroll 28s linear infinite; padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--green-soft); }
+    .map-ticker-inner .jackpot-msg { color: #ffcc00; text-shadow: 0 0 8px rgba(255, 204, 0, 0.5); }
+    @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-200%); } }
+
+    /* Party Mode */
+    .party-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: all; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); animation: partyFadeIn 0.3s ease; }
+    @keyframes partyFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .party-overlay .party-content { text-align: center; animation: partyZoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes partyZoomIn { 0% { transform: scale(0.2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .party-overlay .party-avatar { font-size: 80px; margin-bottom: 12px; animation: partyBounce 0.8s ease infinite alternate; }
+    @keyframes partyBounce { from { transform: translateY(0); } to { transform: translateY(-18px); } }
+    .party-overlay .party-title { font-size: clamp(28px, 6vw, 52px); font-weight: 900; letter-spacing: -0.03em; color: #ffcc00; text-shadow: 0 0 30px rgba(255, 204, 0, 0.6), 0 0 60px rgba(255, 204, 0, 0.3); margin: 0 0 8px; }
+    .party-overlay .party-coins { font-size: clamp(36px, 8vw, 72px); font-weight: 900; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .party-overlay .party-sub { font-size: 16px; color: var(--green-soft); margin-top: 8px; }
+
+    /* Fireworks and Splash */
+    .fireworks-canvas { position: fixed; inset: 0; z-index: 10000; pointer-events: none; }
+    .splash-screen { position: fixed; inset: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(145deg, #0a0f0d 0%, #0d1a14 50%, #0a0f0d 100%); transition: opacity 0.8s ease; }
+    .splash-screen.fade-out { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 180px; height: auto; animation: splashFadeIn 1.2s ease forwards, splashPulse 2s ease-in-out 1.2s infinite; opacity: 0; }
+    @keyframes splashFadeIn { 0% { opacity: 0; transform: scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes splashPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: 0.85; } }
+    .splash-text { margin-top: 24px; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--green-soft); opacity: 0; animation: splashFadeIn 1s ease 0.6s forwards; }
+    .splash-bar { margin-top: 28px; width: 160px; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; opacity: 0; animation: splashFadeIn 0.8s ease 1s forwards; }
+    .splash-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--green-soft)); border-radius: 3px; animation: splashBarFill 2s ease 1.2s forwards; }
+    @keyframes splashBarFill { 0% { width: 0%; } 100% { width: 100%; } }
+
+    /* Navbar and Badges */
+    .brand-logo-img { height: 42px; width: auto; object-fit: contain; border-radius: 8px; }
+    .stock-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; background: rgba(215, 179, 90, 0.15); border: 1px solid rgba(215, 179, 90, 0.35); color: var(--yellow); }
+    .stock-badge.demo { background: rgba(122, 215, 255, 0.12); border-color: rgba(122, 215, 255, 0.3); color: var(--cyan); }
+
+    /* Engine and Alerts */
+    .engine-config-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 14px 0; }
+    .engine-config-grid .config-card { padding: 16px; border-radius: 16px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); }
+    .engine-config-grid .config-card h4 { margin: 0 0 10px; color: var(--green-soft); font-size: 14px; }
+    .alert-card { padding: 14px; border-radius: 14px; background: rgba(255, 40, 40, 0.08); border: 1px solid rgba(255, 40, 40, 0.3); margin-bottom: 10px; }
+    .alert-card.high { border-color: #ff2828; background: rgba(255, 40, 40, 0.14); }
+    .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .alert-severity { font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: #ff2828; color: #fff; }
+    .alert-text { font-size: 12px; color: rgba(255, 80, 80, 0.9); word-break: break-all; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin: 6px 0; }
+    .banned-badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; border-radius: 6px; background: #ff2828; color: #fff; margin-left: 6px; }
+    .btn.report { background: rgba(255, 100, 40, 0.15); border: 1px solid rgba(255, 100, 40, 0.4); color: #ff8844; }
+
+    /* Tutorial and Help */
+    .tutorial-overlay { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; animation: tutFadeIn 0.4s ease; }
+    @keyframes tutFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .tutorial-card { background: var(--panel-strong); border: 1px solid rgba(66,215,125,0.25); border-radius: var(--radius); padding: 32px 28px 24px; max-width: 420px; width: 92%; box-shadow: var(--shadow); text-align: center; animation: tutSlideUp 0.45s ease; }
+    @keyframes tutSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .tut-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: background 0.3s; }
+    .tut-dot.active { background: var(--green); }
+    .help-fab { position: fixed; bottom: 24px; right: 24px; z-index: 99990; width: 52px; height: 52px; border-radius: 50%; background: var(--green); color: var(--bg); font-size: 26px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(66,215,125,0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .help-fab:hover { transform: scale(1.1); }
+    .faq-overlay { position: fixed; inset: 0; z-index: 99995; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; animation: tutFadeIn 0.3s ease; }
+    .faq-overlay.hidden { display: none; }
+    .faq-modal { background: var(--panel-strong); border: 1px solid rgba(66,215,125,0.2); border-radius: var(--radius); padding: 28px 24px 20px; max-width: 520px; width: 94%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow); position: relative; animation: tutSlideUp 0.35s ease; }
+    .faq-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }
+    .faq-item .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .faq-item.open .faq-a { max-height: 300px; margin-top: 10px; }
+
+    /* Game Layer and HUD */
+    .game-layer { position: fixed; inset: 0; z-index: 40; background: #050807; overflow: hidden; }
+    .game-layer.hidden { display: none; }
+    .game-map-vp { position: absolute; inset: 0; overflow: hidden; cursor: pointer; background: linear-gradient(135deg, #0a1d12, #08100e); }
+    .game-offline-bg { position: absolute; inset: -80%; z-index: 2; background: linear-gradient(28deg, transparent 0 43%, rgba(255,255,255,0.82) 43% 45%, transparent 45%), #8ec7a3; transform: translate(var(--map-shift-x, 0px), var(--map-shift-y, 0px)); }
+    .game-wallet-pill { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 10; background: linear-gradient(135deg, rgba(24,52,38,0.92), rgba(8,18,14,0.9)); border: 1px solid var(--accent); border-radius: 16px; padding: 6px 18px; display: flex; align-items: center; gap: 8px; }
+    .game-hud-top { position: absolute; top: 0; left: 0; right: 0; z-index: 10; padding: 12px; display: flex; justify-content: space-between; pointer-events: none; }
+    .game-hud-bottom { position: absolute; bottom: 0; left: 0; right: 0; z-index: 10; padding: 8px 12px; display: flex; justify-content: space-between; pointer-events: none; }
+    .game-panel-overlay { position: fixed; inset: 0; z-index: 45; background: rgba(5,8,7,0.94); overflow-y: auto; padding: 16px; }
+    .game-panel-overlay.hidden { display: none; }
+     <!-- Tutorial Overlay (injected dynamically by JS) -->
+  <div id="tutorial-overlay"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const STORAGE_KEY = 'ZAP_FLAGS_3_STATE';
+    const WALK_STEP_METERS = 0.5;
+    const RUN_STEP_METERS = 1.5;
+    const GPS_METERS_TO_PERCENT = 0.1;
+    const GPS_BASE_LAT = 38.7223;
+    const GPS_BASE_LNG = -9.1393;
+    let placementType = 'ZAP';
+    const COINS_PER_REGISTRATION = 25;
+    let spacePressed = false;
+    let gpsMode = 'offline';
+    let playerLeafletMap = null;
+
+    function createInitialState() {
+      const now = Date.now();
+      return {
+        session: { type: null, id: null },
+        /* ── Engine Config (Admin-tunable) ── */
+        engineConfig: {
+          stockCentral: {
+            maxStock: 500,
+            radiusKm: 5,
+            minCompaniesInRadius: 10,
+            enabled: true
+          },
+          dormantFlags: {
+            awakenRadiusPercent: 2,
+            dormantOffsetMinPercent: 5,
+            dormantOffsetMaxPercent: 10,
+            enabled: true
+          },
+          jackpotDrop: {
+            probabilityPercent: 0.1,
+            minPrize: 50,
+            maxPrize: 1500,
+            enabled: true
+          }
+        },
+        /* ── Global Vault (lastro: 2 empresas iniciais x 25) ── */
+        globalVault: 50,
+        /* ── Stock Central pool of demo companies ── */
+        stockCentralPool: [],
+        /* ── Ticker feed messages ── */
+        tickerFeed: [],
+        players: [
+          {
+            id: 'player_demo',
+            name: 'Avatar Demo',
+            email: 'jogador@demo.pt',
+            phone: '910000000',
+            password: '123456',
+            energy: 92,
+            hunger: 80,
+            mood: 76,
+            coins: 1500,
+            flags: 12,
+            zap: 8,
+            pr: 4,
+            qrs: ['ZAP-CAF-2030'],
+            position: { x: 50, y: 50 },
+            createdAt: now
+          },
+          {
+            id: 'player_norte',
+            name: 'Jogador Norte',
+            email: 'norte@demo.pt',
+            phone: '920000000',
+            password: '123456',
+            energy: 88,
+            hunger: 75,
+            mood: 82,
+            coins: 95,
+            flags: 4,
+            zap: 3,
+            pr: 1,
+            qrs: [],
+            position: { x: 35, y: 35 },
+            createdAt: now
+          }
+        ],
+        companies: [
+          { id: 'company_cafe', name: 'Café Central', nif: '123456789', email: 'empresa@demo.pt', password: '123456', pack: 'Básico', flags: 4200, status: 'Ativo', createdAt: now },
+          { id: 'company_gym', name: 'Urban Gym', nif: '987654321', email: 'gym@demo.pt', password: '123456', pack: 'Pro', flags: 11800, status: 'Ativo', createdAt: now }
+        ],
+        qrs: [
+          { id: 'qr_1', code: 'ZAP-CAF-2030', company: 'Café Central', value: '10% desconto', price: 24, type: 'QR', ownerId: null, forSale: true },
+          { id: 'qr_2', code: 'FLAG-PREM-88A', company: 'Bandeira Premiada', value: 'Item negociável', price: 55, type: 'Premium Flag', ownerId: null, forSale: true },
+          { id: 'qr_3', code: 'ZAP-GYM-4410', company: 'Urban Gym', value: 'Aula experimental', price: 40, type: 'QR', ownerId: null, forSale: true }
+        ],
+        flags: [
+          { id: 'flag_1', type: 'ZAP', label: 'Flag ZAP Centro', x: 18, y: 26, reward: 3, active: true, dormant: true, companyId: 'company_cafe' },
+          { id: 'flag_2', type: 'PR', label: 'Flag PR Café', x: 72, y: 22, reward: 1, active: true, dormant: true, companyId: 'company_cafe' },
+          { id: 'flag_3', type: 'BINGO', label: 'Bingo Praça', x: 66, y: 68, reward: 25, active: true, dormant: true, companyId: 'company_gym' },
+          { id: 'flag_4', type: 'ZAP', label: 'Flag ZAP Norte', x: 22, y: 72, reward: 3, active: true, dormant: true, companyId: 'company_gym' }
+        ],
+        bingos: [
+          { id: 'bingo_1', name: 'Bingo Praça Verde', area: 'Centro', reward: 50, active: true }
+        ],
+        trades: [
+          { 
+            id: 'trade_test_1', 
+            fromId: 'player_norte', 
+            toId: 'player_demo', 
+            qrCode: null, 
+            coins: 25, 
+            status: 'pending', 
+            createdAt: now,
+            expiresAt: now + (24 * 60 * 60 * 1000),
+            escrowCoins: 25,
+            message: 'Proposta de teste para verificar o relógio'
+          }
+        ],
+        audit: [
+          { id: 'audit_1', at: now, text: 'Sistema ZAP-FLAGS 3.0 iniciado.' },
+          { id: 'audit_2', at: now, text: 'Mapa GPS real com avatar centralizado, movimento offline por setas e corrida 3x registado no backoffice.' }
+        ],
+        /* ── Security & Moderation ── */
+        securityAlerts: [],
+        bannedUsers: [],
+        reports: []
+      };
+    }
+    let state = loadState();
+  if (!state.trades) state.trades = [];
+  if (!state.selectedBingos) state.selectedBingos = [];
+  if (!state.bulkPrizes) state.bulkPrizes = [];
+  /* ── State migrations for engine features ── */
+  if (!state.engineConfig) {
+    state.engineConfig = createInitialState().engineConfig;
+  }
+  if (state.globalVault === undefined) state.globalVault = state.companies.length * COINS_PER_REGISTRATION;
+  if (!state.stockCentralPool) state.stockCentralPool = [];
+  if (!state.tickerFeed) state.tickerFeed = [];
+  state.flags.forEach(function(f) { if (f.dormant === undefined) f.dormant = true; });
+  if (!state.securityAlerts) state.securityAlerts = [];
+  if (!state.bannedUsers) state.bannedUsers = [];
+  if (!state.reports) state.reports = [];
+  let partyModeActive = false;
+
+  // Garantir que cada jogador tem flagHistory
+  state.players.forEach(p => { if (!p.flagHistory) p.flagHistory = []; });
+
+  // WASD zoom state
+  let wasdZoomApplied = false;
+  const WASD_ZOOM_LEVEL = 6;
+
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (error) {
+      console.warn(error);
+    }
+    return createInitialState();
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function addAudit(text) {
+    state.audit.unshift({ id: 'audit_' + Date.now(), at: Date.now(), text });
+    state.audit = state.audit.slice(0, 80);
+    saveState();
+  }
+
+  function currentPlayer() {
+    return state.players.find(player => player.id === state.session.id);
+  }
+
+  function currentCompany() {
+    return state.companies.find(company => company.id === state.session.id);
+  }
+
+  function ensurePlayerPosition(player) {
+    if (!player.position) player.position = { x: 50, y: 50 };
+    return player.position;
+  }
+
+  function distanceBetween(a, b) {
+    const dx = Number(a.x) - Number(b.x);
+    const dy = Number(a.y) - Number(b.y);
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function clampStat(value) {
+    return Math.max(0, Math.min(100, Number(value)));
+  }
+
+  function spendMovementStats(player) {
+    player.energy = clampStat(Number(player.energy) - 1);
+    player.hunger = clampStat(Number(player.hunger) - 1);
+    player.mood = clampStat(Number(player.mood) - (player.hunger < 20 ? 2 : 0));
+  }
+
+  function canMove(player) {
+    if (Number(player.energy) <= 0) {
+      notify('Energia esgotada. Descansa antes de continuar.');
+      return false;
+    }
+    if (Number(player.hunger) <= 0) {
+      notify('Fome no limite. Precisas de comer antes de continuar.');
+      return false;
+    }
+    return true;
+  }
+
+  function uid(prefix) {
+    return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+  }
+
+  function escapeJs(value) {
+    return String(value ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function showScreen(id) {
+    console.log('showScreen called with:', id);
+    if (id === 'backoffice') { window.location.href = 'admin.html'; return; }
+    exitGameMode();
+    document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'player') {
+      console.log('Calling renderPlayerGate');
+      renderPlayerGate();
+    }
+    if (id === 'company') {
+      console.log('Calling renderCompanyGate');
+      renderCompanyGate();
+    }
+    if (id === 'backoffice') renderBackofficePanel('overview');
+  }
+
+  function notify(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('active');
+    clearTimeout(notify.timer);
+    notify.timer = setTimeout(() => toast.classList.remove('active'), 2400);
+  }
+
+  function logout() {
+    exitGameMode();
+    document.body.classList.remove('game-fullscreen');
+    wasdZoomApplied = false;
+    state.session = { type: null, id: null };
+    saveState();
+    notify('Sessão terminada');
+    document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+    document.getElementById('home').classList.add('active');
+  }
+    /* ═══ Game Mode Helpers ═══ */
+  function enterGameMode() {
+    document.body.classList.add('game-active');
+    var gl = document.getElementById('game-layer');
+    if (gl) gl.classList.remove('hidden');
+    closeGamePanelOverlay();
+  }
+  function exitGameMode() {
+    document.body.classList.remove('game-active');
+    var gl = document.getElementById('game-layer');
+    if (gl) { gl.classList.add('hidden'); gl.innerHTML = ''; }
+    closeGamePanelOverlay();
+    closeGameMenu();
+  }
+  function toggleGameMenu() {
+    var m = document.getElementById('game-menu');
+    if (m) m.classList.toggle('hidden');
+  }
+  function closeGameMenu() {
+    var m = document.getElementById('game-menu');
+    if (m) m.classList.add('hidden');
+  }
+  function closeGamePanelOverlay() {
+    var o = document.getElementById('game-panel-overlay');
+    if (o) { o.classList.add('hidden'); o.innerHTML = ''; }
+  }
+  function showGamePanel(panel) {
+    closeGameMenu();
+    renderPlayerPanel(panel);
+  }
+
+  function tradeCard(trade, isIncoming) {
+    const player = currentPlayer();
+    const other = state.players.find(p => p.id === (isIncoming ? trade.fromId : trade.toId));
+    const timeRemaining = trade.expiresAt ? formatTimeRemaining(trade.expiresAt) : null;
+    
+    return `
+      <div class="qr-card">
+        <h4>${isIncoming ? 'Proposta Recebida' : 'Proposta Enviada'}</h4>
+        <p><strong>De:</strong> ${escapeHtml(other?.name || 'Desconhecido')}</p>
+        ${trade.qrCode ? `<p><strong>QR:</strong> ${escapeHtml(trade.qrCode)}</p>` : ''}
+        ${trade.coins > 0 ? `<p><strong>Moedas:</strong> ${trade.coins} 🪙</p>` : ''}
+        ${trade.escrowCoins > 0 ? `<p><small><em>Valor cativo: ${trade.escrowCoins} 🪙</em></small></p>` : ''}
+        ${timeRemaining ? `<p><small><strong>Expires em:</strong> ${timeRemaining}</small></p>` : ''}
+        <div class="actions">
+          ${isIncoming ? `
+            <button class="btn" onclick="acceptTrade('${trade.id}')">Aceitar</button>
+            <button class="btn secondary" onclick="rejectTrade('${trade.id}')">Recusar</button>
+          ` : `
+            <button class="btn danger" onclick="cancelTrade('${trade.id}')">Cancelar</button>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPlayerGate() {
+    console.log('renderPlayerGate called');
+    console.log('Session state:', state.session);
+    console.log('Current player:', currentPlayer());
+    if (state.session.type === 'player' && currentPlayer()) {
+      console.log('Player has session, showing panel');
+      renderPlayerPanel('game');
+    } else {
+      console.log('No player session, showing auth');
+      renderPlayerAuth();
+    }
+  }
+
+  function renderCompanyGate() {
+    if (state.session.type === 'company' && currentCompany()) renderCompanyPanel('dashboard');
+    else renderCompanyAuth();
+  }
+
+  function renderPlayerAuth() {
+    console.log('renderPlayerAuth called');
+    const content = `
+      <div class="grid two">
+        <div class="auth-box">
+          <h2>Login Jogador</h2>
+          <div class="input-group"><label>Email</label><input id="player-login-email" value="jogador@demo.pt"></div>
+          <div class="input-group"><label>Senha</label><input id="player-login-password" type="password" value="123456"></div>
+          <button class="btn" onclick="loginPlayer()">Entrar</button>
+        </div>
+        <div class="auth-box">
+          <h2>Registar Jogador</h2>
+          <div class="input-group"><label>Nome</label><input id="player-register-name" placeholder="Nome do jogador"></div>
+          <div class="input-group"><label>Email</label><input id="player-register-email" placeholder="email@exemplo.pt"></div>
+          <div class="input-group"><label>Contacto</label><input id="player-register-phone" placeholder="Contacto"></div>
+          <div class="input-group"><label>Senha</label><input id="player-register-password" type="password" placeholder="Senha"></div>
+          <button class="btn" onclick="registerPlayer()">Criar conta</button>
+        </div>
+      </div>
+    `;
+    console.log('Setting player-content innerHTML');
+    document.getElementById('player-content').innerHTML = content;
+    console.log('Player auth rendered');
+  }
+
+  function selectGpsMode(mode) {
+    console.log('selectGpsMode called with:', mode);
+    
+    // Remover classe active de todos os botões
+    const onlineBtn = document.getElementById('gps-online-btn');
+    const offlineBtn = document.getElementById('gps-offline-btn');
+    
+    if (onlineBtn) onlineBtn.classList.remove('active');
+    if (offlineBtn) offlineBtn.classList.remove('active');
+    
+    // Adicionar classe active ao botão selecionado
+    if (mode === 'online' && onlineBtn) {
+      onlineBtn.classList.add('active');
+      onlineBtn.className = 'btn gps-mode-btn active';
+      if (offlineBtn) offlineBtn.className = 'btn secondary gps-mode-btn';
+    } else if (mode === 'offline' && offlineBtn) {
+      offlineBtn.classList.add('active');
+      offlineBtn.className = 'btn gps-mode-btn active';
+      if (onlineBtn) onlineBtn.className = 'btn secondary gps-mode-btn';
+    }
+  }
+    // Guardar seleção no estado
+    state.selectedGpsMode = mode;
+    console.log('GPS mode selected:', mode);
+  }
+
+  // Funções para Lista de Jogadores
+  function openPlayerDialog(playerId) {
+    const player = currentPlayer();
+    const targetPlayer = state.players.find(p => p.id === playerId);
+    if (!targetPlayer) return notify('Jogador não encontrado');
+    
+    // Criar diálogo
+    const dialogHtml = `
+      <div class="dialog-overlay" onclick="closePlayerDialog()"></div>
+      <div class="player-dialog">
+        <div class="dialog-header">
+          <h2>Diálogo com ${escapeHtml(targetPlayer.name)}</h2>
+          <button class="dialog-close" onclick="closePlayerDialog()">×</button>
+        </div>
+        
+        <div class="stats-row">
+          <span class="badge">⚡ ${targetPlayer.energy}</span>
+          <span class="badge">🪙 ${targetPlayer.coins}</span>
+          <span class="badge">🏁 ${targetPlayer.flags}</span>
+          <span class="badge">🍗 ${targetPlayer.hunger}</span>
+          <span class="badge">🙂 ${targetPlayer.mood}</span>
+        </div>
+        
+        <p><strong>Email:</strong> ${escapeHtml(targetPlayer.email)}</p>
+        <p><strong>Contacto:</strong> ${escapeHtml(targetPlayer.phone || 'Não definido')}</p>
+        
+        <h3>Mensagens</h3>
+        <div class="message-area" id="dialog-messages">
+          <p><em>Sem mensagens anteriores. Inicia uma conversa!</em></p>
+        </div>
+        
+        <input type="text" class="message-input" id="dialog-message-input" placeholder="Escreve a tua mensagem..." onkeypress="if(event.key==='Enter') sendDialogMessage('${playerId}')">
+        
+        <div class="dialog-actions">
+          <button class="btn" onclick="sendDialogMessage('${playerId}')">Enviar Mensagem</button>
+          <button class="btn secondary" onclick="sendFriendRequest('${playerId}')">Pedir Amizade</button>
+          <button class="btn secondary" onclick="quickTradeProposal('${playerId}')">Propor Troca</button>
+          <button class="btn report" onclick="reportPlayer('${playerId}')">⚠ Denunciar</button>
+          <button class="btn secondary" onclick="closePlayerDialog()">Fechar</button>
+        </div>
+      </div>
+    `;
+    
+    // Adicionar diálogo ao body
+    const dialogContainer = document.createElement('div');
+    dialogContainer.id = 'player-dialog-container';
+    dialogContainer.innerHTML = dialogHtml;
+    document.body.appendChild(dialogContainer);
+    
+    // Focar no input de mensagem
+    setTimeout(() => {
+      document.getElementById('dialog-message-input')?.focus();
+    }, 100);
+  }
+
+  function closePlayerDialog() {
+    const dialogContainer = document.getElementById('player-dialog-container');
+    if (dialogContainer) {
+      dialogContainer.remove();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SECURITY — Pre-emptive Chat Filter & Moderation
+     ═══════════════════════════════════════════════════════════════ */
+
+  var BLOCKED_WORDS = [
+    'matar', 'mata', 'morte', 'morrer', 'assassinar', 'assassino',
+    'arma', 'armas', 'pistola', 'espingarda', 'faca', 'navalha', 'explosivo', 'bomba',
+    'roubar', 'roubo', 'assalto', 'assaltar', 'sequestro', 'sequestrar',
+    'droga', 'drogas', 'cocaina', 'heroina', 'crack', 'tráfico',
+    'pedofilia', 'pedófilo', 'abuso', 'violar', 'violação',
+    'terrorismo', 'terrorista', 'ameaça', 'ameaçar',
+    'suicidio', 'suicídio', 'suicidar',
+    'nudes', 'nude', 'pornografia', 'porno',
+    'hack', 'hacker', 'hackear', 'exploit',
+    'kill', 'murder', 'weapon', 'gun', 'knife', 'bomb', 'terrorist',
+    'rape', 'abuse', 'drugs', 'cocaine', 'heroin'
+  ];
+
+  var BLOCKED_PATTERNS = [
+    /\b\d{9,}\b/,
+    /\b(?:\+351|00351)?\s*\d{3}[\s.-]?\d{3}[\s.-]?\d{3}\b/,
+    /https?:\/\/[^\s]+/i,
+    /www\.[^\s]+/i,
+    /[a-zA-Z0-9.-]+\.(com|net|org|pt|eu|io|me|info|co|uk|es|fr|de|it)\b/i
+  ];
+
+  function chatFilter(text) {
+    var lower = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    var textNorm = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (var i = 0; i < BLOCKED_WORDS.length; i++) {
+      var word = BLOCKED_WORDS[i].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      var re = new RegExp('\\b' + word + '\\b', 'i');
+      if (re.test(lower)) return { blocked: true, reason: 'Palavra proibida: ' + BLOCKED_WORDS[i] };
+    }
+    for (var j = 0; j < BLOCKED_PATTERNS.length; j++) {
+      if (BLOCKED_PATTERNS[j].test(text)) {
+        if (j <= 1) return { blocked: true, reason: 'Número de telemóvel detetado' };
+        return { blocked: true, reason: 'Link externo detetado' };
+      }
+    }
+    return { blocked: false };
+  }
+      function createSecurityAlert(playerId, playerName, blockedText, reason, gpsPosition) {
+    var alert = {
+      id: uid('alert'),
+      playerId: playerId,
+      playerName: playerName,
+      blockedText: blockedText,
+      reason: reason,
+      gps: gpsPosition || { x: 0, y: 0 },
+      timestamp: Date.now(),
+      reviewed: false
+    };
+    state.securityAlerts.unshift(alert);
+    if (state.securityAlerts.length > 200) state.securityAlerts.length = 200;
+    saveState();
+    addAudit('ALERTA SEGURANÇA: ' + playerName + ' — ' + reason);
+  }
+
+  function reportPlayer(targetPlayerId) {
+    var player = currentPlayer();
+    var target = state.players.find(function(p) { return p.id === targetPlayerId; });
+    if (!player || !target) return notify('Jogador não encontrado');
+    var reason = prompt('Descreve o motivo da denúncia contra ' + target.name + ':');
+    if (!reason || !reason.trim()) return;
+    var report = {
+      id: uid('report'),
+      reporterId: player.id,
+      reporterName: player.name,
+      targetId: target.id,
+      targetName: target.name,
+      reason: reason.trim(),
+      gps: player.position || { x: 0, y: 0 },
+      timestamp: Date.now(),
+      status: 'pending'
+    };
+    state.reports.push(report);
+    createSecurityAlert(target.id, target.name, 'Denúncia: ' + reason.trim(), 'Denúncia por ' + player.name, player.position);
+    saveState();
+    notify('Denúncia enviada contra ' + target.name + '. A equipa de moderação irá analisar.');
+  }
+
+  function isPlayerBanned(playerId) {
+    return state.bannedUsers.some(function(b) { return b.playerId === playerId && b.active; });
+  }
+
+  function banPlayer(playerId, reason) {
+    var player = state.players.find(function(p) { return p.id === playerId; });
+    if (!player) return notify('Jogador não encontrado');
+    if (isPlayerBanned(playerId)) return notify(player.name + ' já está banido');
+    state.bannedUsers.push({
+      id: uid('ban'),
+      playerId: playerId,
+      playerName: player.name,
+      ip: player.ip || 'desconhecido',
+      reason: reason || 'Violação das regras da comunidade',
+      bannedAt: Date.now(),
+      active: true
+    });
+    saveState();
+    addAudit('BAN aplicado: ' + player.name + ' — ' + (reason || 'Violação das regras'));
+    notify('Jogador ' + player.name + ' foi banido permanentemente');
+  }
+
+  function unbanPlayer(banId) {
+    var ban = state.bannedUsers.find(function(b) { return b.id === banId; });
+    if (!ban) return;
+    ban.active = false;
+    saveState();
+    addAudit('BAN removido: ' + ban.playerName);
+    notify('Ban de ' + ban.playerName + ' foi removido');
+  }
+
+  function sendDialogMessage(playerId) {
+    const input = document.getElementById('dialog-message-input');
+    const messageArea = document.getElementById('dialog-messages');
+    const player = currentPlayer();
+    const targetPlayer = state.players.find(p => p.id === playerId);
+    
+    if (!input || !messageArea || !player || !targetPlayer) return;
+
+    /* Check if sender is banned */
+    if (isPlayerBanned(player.id)) {
+      input.value = '';
+      return notify('A tua conta está suspensa. Não podes enviar mensagens.');
+    }
+    
+    const message = input.value.trim();
+    if (!message) return;
+
+    /* Pre-emptive filter */
+    var filterResult = chatFilter(message);
+    if (filterResult.blocked) {
+      createSecurityAlert(player.id, player.name, message, filterResult.reason, player.position);
+      input.value = '';
+      return notify('Mensagem bloqueada: ' + filterResult.reason + '. Esta ação foi registada.');
+    }
+    
+    // Adicionar mensagem à área
+    const messageHtml = `<p><strong>${player.name}:</strong> ${escapeHtml(message)}</p>`;
+    messageArea.innerHTML += messageHtml;
+    
+    // Limpar input
+    input.value = '';
+    
+    // Scroll para baixo
+    messageArea.scrollTop = messageArea.scrollHeight;
+    
+    // Guardar mensagem no estado (simulação)
+    if (!state.messages) state.messages = [];
+    state.messages.push({
+      id: uid('message'),
+      fromId: player.id,
+      toId: targetPlayer.id,
+      text: message,
+      timestamp: Date.now()
+    });
+    
+    saveState();
+    notify('Mensagem enviada para ' + targetPlayer.name);
+  }
+   function sendFriendRequest(playerId) {
+    const player = currentPlayer();
+    const targetPlayer = state.players.find(p => p.id === playerId);
+    
+    if (!player || !targetPlayer) return notify('Jogador não encontrado');
+    
+    // Verificar se já são amigos ou se já existe um pedido
+    if (state.friendRequests?.some(req => 
+      (req.fromId === player.id && req.toId === targetPlayer.id) ||
+      (req.fromId === targetPlayer.id && req.toId === player.id)
+    )) {
+      return notify('Já existe um pedido de amizade entre vocês');
+    }
+    
+    // Criar pedido de amizade
+    if (!state.friendRequests) state.friendRequests = [];
+    state.friendRequests.push({
+      id: uid('friend_request'),
+      fromId: player.id,
+      toId: targetPlayer.id,
+      status: 'pending',
+      timestamp: Date.now()
+    });
+    
+    saveState();
+    addAudit(`${player.name} enviou pedido de amizade para ${targetPlayer.name}`);
+    notify('Pedido de amizade enviado para ' + targetPlayer.name);
+    
+    // Fechar diálogo se estiver aberto
+    closePlayerDialog();
+  }
+
+  function quickTradeProposal(playerId) {
+    const player = currentPlayer();
+    const targetPlayer = state.players.find(p => p.id === playerId);
+    
+    if (!player || !targetPlayer) return notify('Jogador não encontrado');
+    
+    // Abrir diálogo rápido para proposta
+    const dialogHtml = `
+      <div class="dialog-overlay" onclick="closeQuickTradeDialog()"></div>
+      <div class="player-dialog">
+        <div class="dialog-header">
+          <h2>Proposta de Troca para ${escapeHtml(targetPlayer.name)}</h2>
+          <button class="dialog-close" onclick="closeQuickTradeDialog()">×</button>
+        </div>
+        
+        <div class="input-group">
+          <label>QR a oferecer</label>
+          <select id="quick-trade-qr">
+            <option value="">Nenhum QR</option>
+            ${player.qrs.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(code)}</option>`).join('')}
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label>Moedas a oferecer</label>
+          <input type="number" id="quick-trade-coins" min="0" max="${player.coins}" value="0">
+        </div>
+        
+        <div class="input-group">
+          <label>Mensagem (opcional)</label>
+          <textarea class="message-input" id="quick-trade-message" placeholder="Adiciona uma mensagem à tua proposta..." rows="3"></textarea>
+        </div>
+        
+        <div class="dialog-actions">
+          <button class="btn" onclick="submitQuickTrade('${playerId}')">Enviar Proposta</button>
+          <button class="btn secondary" onclick="closeQuickTradeDialog()">Cancelar</button>
+        </div>
+      </div>
+    `;
+    
+    // Adicionar diálogo ao body
+    const dialogContainer = document.createElement('div');
+    dialogContainer.id = 'quick-trade-dialog-container';
+    dialogContainer.innerHTML = dialogHtml;
+    document.body.appendChild(dialogContainer);
+  }
+
+  function closeQuickTradeDialog() {
+    const dialogContainer = document.getElementById('quick-trade-dialog-container');
+    if (dialogContainer) {
+      dialogContainer.remove();
+    }
+  }
+
+  function submitQuickTrade(playerId) {
+    const qrSelect = document.getElementById('quick-trade-qr');
+    const coinsInput = document.getElementById('quick-trade-coins');
+    const messageInput = document.getElementById('quick-trade-message');
+    
+    if (!qrSelect || !coinsInput) return;
+    
+    const qrCode = qrSelect.value;
+    const coins = parseInt(coinsInput.value) || 0;
+    const message = messageInput?.value.trim() || '';
+    
+    const player = currentPlayer();
+    const targetPlayer = state.players.find(p => p.id === playerId);
+    
+    if (!player || !targetPlayer) return;
+    
+    if (!qrCode && coins <= 0) return notify('Oferece um QR ou moedas');
+    if (coins > player.coins) return notify('Moedas insuficientes');
+    
+    // Criar proposta de troca
+    state.trades.push({
+      id: uid('trade'),
+      fromId: player.id,
+      toId: targetPlayer.id,
+      qrCode: qrCode || null,
+      coins: coins,
+      message: message,
+      status: 'pending',
+      createdAt: Date.now()
+    });
+    
+    saveState();
+    addAudit(`${player.name} enviou proposta rápida para ${targetPlayer.name}`);
+    notify('Proposta de troca enviada para ' + targetPlayer.name);
+    
+    closeQuickTradeDialog();
+    closePlayerDialog();
+  }
+
+  // Funções para QR Market
+  function sellQr() {
+    const player = currentPlayer();
+    if (!player) return renderPlayerAuth();
+    
+    const qrSelect = document.getElementById('sell-qr-select');
+    const priceInput = document.getElementById('sell-qr-price');
+    const negotiableSelect = document.getElementById('sell-qr-negotiable');
+    const locationInput = document.getElementById('sell-qr-location');
+    const prizeTypeSelect = document.getElementById('sell-qr-prize-type');
+    const descriptionInput = document.getElementById('sell-qr-description');
+    
+    if (!qrSelect.value) return notify('Seleciona um QR para vender');
+    if (!priceInput.value || parseInt(priceInput.value) < 1) return notify('Define um preço válido');
+    
+    const qrCode = qrSelect.value;
+    const price = parseInt(priceInput.value);
+    const negotiable = negotiableSelect.value === 'true';
+    const location = locationInput.value.trim();
+    const prizeType = prizeTypeSelect.value;
+    const description = descriptionInput.value.trim();
+    
+    // Verificar se o QR já está à venda
+    const existingQr = state.qrs.find(qr => qr.code === qrCode);
+    if (existingQr && existingQr.forSale) {
+      return notify('Este QR já está à venda');
+    }
+    
+    // Verificar se o jogador tem o QR
+    if (!player.qrs.includes(qrCode)) {
+      return notify('Não tens este QR');
+    }
+    
+    // Verificar prémios de bandeiras (necessita de 20 bandeiras da mesma empresa)
+    if (existingQr && existingQr.type === 'PR') {
+      const companyFlags = state.flags.filter(f => 
+        f.type === 'PR' && 
+        f.active && 
+        f.label.toLowerCase().includes(existingQr.company?.toLowerCase() || '')
+      );
+      
+      if (companyFlags.length < 20) {
+        return notify(`Para vender este QR precisas de 20 bandeiras da empresa ${existingQr.company}. Atualmente tens ${companyFlags.length}.`);
+      }
+    }   

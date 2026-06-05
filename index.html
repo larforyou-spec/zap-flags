@@ -2639,3 +2639,878 @@
         return notify(`Para vender este QR precisas de 20 bandeiras da empresa ${existingQr.company}. Atualmente tens ${companyFlags.length}.`);
       }
     }   
+// Criar ou atualizar QR para venda
+    if (existingQr) {
+      existingQr.forSale = true;
+      existingQr.price = price;
+      existingQr.negotiable = negotiable;
+      existingQr.location = location;
+      existingQr.prizeType = prizeType;
+      existingQr.description = description;
+      existingQr.sellerName = player.name;
+      existingQr.listedAt = Date.now();
+    } else {
+      // Criar novo QR se não existir
+      state.qrs.push({
+        id: uid('qr'),
+        code: qrCode,
+        type: 'CUSTOM',
+        company: player.name,
+        value: description || 'QR Personalizado',
+        price: price,
+        negotiable: negotiable,
+        location: location,
+        prizeType: prizeType,
+        description: description,
+        sellerName: player.name,
+        ownerId: player.id,
+        forSale: true,
+        listedAt: Date.now()
+      });
+    }
+    
+    saveState();
+    addAudit(`${player.name} colocou QR ${qrCode} à venda por ${price} moedas`);
+    notify(`QR ${qrCode} colocado à venda por ${price} moedas!`);
+    
+    // Limpar formulário
+    qrSelect.value = '';
+    priceInput.value = '';
+    locationInput.value = '';
+    descriptionInput.value = '';
+    
+    // Atualizar painel
+    renderPlayerPanel('market');
+  }
+
+  function sellBingo() {
+    const player = currentPlayer();
+    if (!player) return renderPlayerAuth();
+    
+    const bingoSelect = document.getElementById('sell-bingo-select');
+    const priceInput = document.getElementById('sell-bingo-price');
+    
+    if (!bingoSelect.value) return notify('Seleciona um Bingo para vender');
+    if (!priceInput.value || parseInt(priceInput.value) < 1) return notify('Define um preço válido');
+    
+    const bingoId = bingoSelect.value;
+    const price = parseInt(priceInput.value);
+    const bingo = state.bingos.find(b => b.id === bingoId);
+    
+    if (!bingo) return notify('Bingo não encontrado');
+    if (bingo.ownerId !== player.id) return notify('Não és dono deste Bingo');
+    
+    // Criar QR representando o Bingo para venda
+    const bingoQr = {
+      id: uid('qr'),
+      code: `BINGO-${bingo.name.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+      type: 'BINGO',
+      company: bingo.name,
+      value: `Bingo com prémio de ${bingo.reward} moedas`,
+      price: price,
+      negotiable: true,
+      location: 'Online',
+      prizeType: 'experience',
+      description: `Bingo completo com direito a prémio de ${bingo.reward} moedas. Área: ${bingo.area}`,
+      sellerName: player.name,
+      ownerId: player.id,
+      forSale: true,
+      listedAt: Date.now(),
+      bingoId: bingoId
+    };
+    
+    state.qrs.push(bingoQr);
+    
+    // Remover Bingo do jogador
+    state.bingos = state.bingos.filter(b => b.id !== bingoId);
+    
+    saveState();
+    addAudit(`${player.name} vendeu Bingo ${bingo.name} por ${price} moedas`);
+    notify(`Bingo ${bingo.name} colocado à venda por ${price} moedas!`);
+    
+    // Limpar formulário
+    bingoSelect.value = '';
+    priceInput.value = '';
+    
+    // Atualizar painel
+    renderPlayerPanel('market');
+  }
+
+  function buyQr(qrId) {
+    const player = currentPlayer();
+    if (!player) return renderPlayerAuth();
+    
+    const qr = state.qrs.find(q => q.id === qrId);
+    if (!qr) return notify('QR não encontrado');
+    if (!qr.forSale) return notify('QR não está à venda');
+    if (qr.ownerId === player.id) return notify('Não podes comprar o teu próprio QR');
+    
+    const price = qr.price;
+    const fee = Math.floor(price * 0.05); // 5% de taxa
+    const totalPrice = price;
+    const netPrice = price - fee;
+    
+    if (player.coins < totalPrice) {
+      return notify(`Moedas insuficientes. Precisas de ${totalPrice} moedas (incluindo ${fee} de taxa)`);
+    }
+    
+    const seller = state.players.find(p => p.id === qr.ownerId);
+    if (!seller) return notify('Vendedor não encontrado');
+    
+    // Processar pagamento
+    player.coins -= totalPrice;
+    seller.coins += netPrice;
+    
+    // Transferir QR
+    qr.ownerId = player.id;
+    qr.forSale = false;
+    qr.soldAt = Date.now();
+    qr.buyerName = player.name;
+    
+    // Adicionar QR ao inventário do jogador
+    if (!player.qrs.includes(qr.code)) {
+      player.qrs.push(qr.code);
+    }
+    
+    saveState();
+    addAudit(`${player.name} comprou QR ${qr.code} de ${seller.name} por ${totalPrice} moedas (taxa: ${fee})`);
+    notify(`QR ${qr.code} comprado com sucesso!`);
+    
+    // Atualizar porta-moedas
+    updateCoinsAfterTransaction();
+    
+    // Atualizar painel
+    renderPlayerPanel('market-buy');
+  }
+    // Funções para seleção múltipla de bingos
+  function toggleBingoSelection(bingoId) {
+    const index = state.selectedBingos.indexOf(bingoId);
+    if (index > -1) {
+      state.selectedBingos.splice(index, 1);
+    } else {
+      state.selectedBingos.push(bingoId);
+    }
+    saveState();
+    renderPlayerPanel('bingo');
+  }
+
+  function clearBingoSelection() {
+    state.selectedBingos = [];
+    saveState();
+    renderPlayerPanel('bingo');
+  }
+
+  function selectAllBingos() {
+    const player = currentPlayer();
+    if (!player) return;
+    
+    const playerBingos = state.bingos.filter(bingo => bingo.ownerId === player.id);
+    state.selectedBingos = playerBingos.map(bingo => bingo.id);
+    saveState();
+    renderPlayerPanel('bingo');
+  }
+
+  function openBulkBingoActions() {
+    const selectedBingos = state.selectedBingos;
+    if (selectedBingos.length === 0) {
+      return notify('Seleciona pelo menos um bingo');
+    }
+    
+    openBulkPrizeDialog();
+  }
+
+  function openBulkPrizeDialog() {
+    const selectedBingos = state.selectedBingos;
+    if (selectedBingos.length === 0) {
+      return notify('Seleciona pelo menos um bingo');
+    }
+    
+    const dialogHtml = `
+      <div class="dialog-overlay" onclick="closeBulkPrizeDialog()"></div>
+      <div class="player-dialog">
+        <div class="dialog-header">
+          <h2>🎁 Criar Prémio Livre - ${selectedBingos.length} Bingo(s)</h2>
+          <button class="dialog-close" onclick="closeBulkPrizeDialog()">×</button>
+        </div>
+        
+        <div class="info-box">
+          <p><strong>Bingos selecionados:</strong> ${selectedBingos.length}</p>
+          <p><strong>Atenção:</strong> Esta ação criará prémios livres para todos os bingos selecionados.</p>
+        </div>
+        
+        <div class="input-group">
+          <label>Descrição do Prémio</label>
+          <textarea id="bulk-prize-description" placeholder="Descreve o prémio livre (ex: Café grátis, 10% desconto, Brinde especial)..." rows="3"></textarea>
+        </div>
+        
+        <div class="input-group">
+          <label>Ativação</label>
+          <select id="bulk-prize-activation">
+            <option value="now">🟢 Ativar Já</option>
+            <option value="schedule">⏰ Agendar para mais tarde</option>
+          </select>
+        </div>
+        
+        <div id="schedule-options" style="display: none;">
+          <div class="input-group">
+            <label>⏰ Data e Hora de Ativação</label>
+            <input type="datetime-local" id="bulk-prize-schedule-time">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>🔄 Tipo de Terminação</label>
+          <select id="bulk-prize-termination">
+            <option value="prize">🏆 Quando prémio for levantado</option>
+            <option value="deadline">⏰ No prazo definido</option>
+            <option value="both">🔄 Qualquer dos dois (o que acontecer primeiro)</option>
+          </select>
+        </div>
+        
+        <div id="deadline-options" style="display: none;">
+          <div class="input-group">
+            <label>⏰ Prazo para Levantamento</label>
+            <select id="bulk-prize-deadline">
+              <option value="1">1 dia</option>
+              <option value="3">3 dias</option>
+              <option value="7">7 dias</option>
+              <option value="15">15 dias</option>
+              <option value="30">30 dias</option>
+              <option value="60">2 meses</option>
+              <option value="90">3 meses</option>
+              <option value="180">6 meses</option>
+              <option value="365">1 ano</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="dialog-actions">
+          <button class="btn" onclick="submitBulkPrize()">Criar Prémio(s) Livre(s)</button>
+          <button class="btn secondary" onclick="closeBulkPrizeDialog()">Cancelar</button>
+        </div>
+      </div>
+    `;
+    
+    const dialogContainer = document.createElement('div');
+    dialogContainer.id = 'bulk-prize-dialog-container';
+    dialogContainer.innerHTML = dialogHtml;
+    document.body.appendChild(dialogContainer);
+    
+    // Adicionar eventos para mostrar/esconder opções
+    setTimeout(() => {
+      const activationSelect = document.getElementById('bulk-prize-activation');
+      const terminationSelect = document.getElementById('bulk-prize-termination');
+      const scheduleOptions = document.getElementById('schedule-options');
+      const deadlineOptions = document.getElementById('deadline-options');
+      
+      if (activationSelect) {
+        activationSelect.addEventListener('change', () => {
+          scheduleOptions.style.display = activationSelect.value === 'schedule' ? 'block' : 'none';
+        });
+      }
+      
+      if (terminationSelect) {
+        terminationSelect.addEventListener('change', () => {
+          deadlineOptions.style.display = 
+            terminationSelect.value === 'deadline' || terminationSelect.value === 'both' 
+            ? 'block' : 'none';
+        });
+      }
+      
+      const scheduleTime = document.getElementById('bulk-prize-schedule-time');
+      if (scheduleTime) {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        scheduleTime.value = now.toISOString().slice(0, 16);
+      }
+    }, 100);
+  }
+
+  function closeBulkPrizeDialog() {
+    const dialogContainer = document.getElementById('bulk-prize-dialog-container');
+    if (dialogContainer) {
+      dialogContainer.remove();
+    }
+  }
+      function submitBulkPrize() {
+    const player = currentPlayer();
+    if (!player) return renderPlayerAuth();
+    
+    const selectedBingos = state.selectedBingos;
+    if (selectedBingos.length === 0) {
+      return notify('Seleciona pelo menos um bingo');
+    }
+    
+    const description = document.getElementById('bulk-prize-description')?.value.trim();
+    const activation = document.getElementById('bulk-prize-activation')?.value;
+    const termination = document.getElementById('bulk-prize-termination')?.value;
+    const deadlineDays = document.getElementById('bulk-prize-deadline')?.value;
+    const scheduleTime = document.getElementById('bulk-prize-schedule-time')?.value;
+    
+    if (!description) {
+      return notify('Descreve o prémio');
+    }
+    
+    const prizes = [];
+    const now = Date.now();
+    
+    selectedBingos.forEach(bingoId => {
+      const bingo = state.bingos.find(b => b.id === bingoId);
+      if (!bingo) return;
+      
+      const prize = {
+        id: uid('prize'),
+        bingoId: bingoId,
+        description: description,
+        activation: activation,
+        termination: termination,
+        createdAt: now,
+        status: activation === 'now' ? 'active' : 'scheduled',
+        ownerId: player.id
+      };
+      
+      if (activation === 'schedule' && scheduleTime) {
+        prize.scheduledAt = new Date(scheduleTime).getTime();
+      } else {
+        prize.activatedAt = now;
+      }
+      
+      if (termination === 'deadline' || termination === 'both') {
+        const deadlineMs = parseInt(deadlineDays) * 24 * 60 * 60 * 1000;
+        prize.deadlineAt = now + deadlineMs;
+      }
+      
+      prizes.push(prize);
+    });
+    
+    if (!state.bulkPrizes) state.bulkPrizes = [];
+    state.bulkPrizes.push(...prizes);
+    
+    saveState();
+    addAudit(`${player.name} criou ${prizes.length} prémio(s) livre(s) para ${selectedBingos.length} bingo(s)`);
+    notify(`✅ ${prizes.length} prémio(s) livre(s) criado(s) com sucesso!`);
+    
+    closeBulkPrizeDialog();
+    clearBingoSelection();
+  }
+
+  function submitBulkSchedule() {
+    const selectedBingos = state.selectedBingos;
+    if (selectedBingos.length === 0) {
+      return notify('Seleciona pelo menos um bingo');
+    }
+    
+    const dateInput = document.getElementById('bulk-schedule-date');
+    const timeInput = document.getElementById('bulk-schedule-time');
+    const noteInput = document.getElementById('bulk-schedule-note');
+    
+    if (!dateInput?.value || !timeInput?.value) {
+      return notify('Define data e hora para o agendamento');
+    }
+    
+    const player = currentPlayer();
+    if (!player) return renderPlayerAuth();
+    
+    const scheduleDateTime = new Date(`${dateInput.value}T${timeInput.value}`);
+    const scheduleTimestamp = scheduleDateTime.getTime();
+    
+    if (scheduleTimestamp <= Date.now()) {
+      return notify('A data de agendamento deve ser no futuro');
+    }
+    
+    const schedules = [];
+    
+    selectedBingos.forEach(bingoId => {
+      const bingo = state.bingos.find(b => b.id === bingoId);
+      if (!bingo) return;
+      
+      schedules.push({
+        id: uid('schedule'),
+        bingoId: bingoId,
+        scheduledAt: scheduleTimestamp,
+        note: noteInput?.value.trim() || '',
+        status: 'scheduled',
+        createdAt: Date.now(),
+        ownerId: player.id
+      });
+    });
+    
+    if (!state.schedules) state.schedules = [];
+    state.schedules.push(...schedules);
+    
+    saveState();
+    addAudit(`${player.name} agendou ativação para ${schedules.length} bingo(s)`);
+    notify(`📅 Agendamento efetuado com sucesso para ${schedules.length} bingo(s)!`);
+    
+    closeBulkScheduleDialog();
+    clearBingoSelection();
+  }
+        // --- Continuação da Lógica de Agendamento ---
+  if (!state.bingoSchedules) state.bingoSchedules = [];
+  state.bingoSchedules.push(...schedules);
+  
+  saveState();
+  addAudit(`${player.name} agendou ativação de ${schedules.length} bingo(s) para ${scheduleDateTime.toLocaleString('pt-PT')}`);
+  notify(`✅ ${schedules.length} bingo(s) agendado(s) para ${scheduleDateTime.toLocaleString('pt-PT')}!`);
+  
+  closeBulkScheduleDialog();
+  clearBingoSelection();
+}
+
+// --- Funções para Diálogos de Venda de QR ---
+function openSellQrDialog(qrCode) {
+  const player = currentPlayer();
+  if (!player) return renderPlayerAuth();
+  
+  const qr = state.qrs.find(q => q.code === qrCode);
+  
+  const dialogHtml = `
+    <div class="dialog-overlay" onclick="closeSellQrDialog()"></div>
+    <div class="player-dialog">
+      <div class="dialog-header">
+        <h2>Vender QR: ${escapeHtml(qrCode)}</h2>
+        <button class="dialog-close" onclick="closeSellQrDialog()">×</button>
+      </div>
+      
+      <div class="stats-row">
+        <span class="badge">${escapeHtml(qr?.type || 'CUSTOM')}</span>
+        ${qr?.company ? `<span class="badge">${escapeHtml(qr.company)}</span>` : ''}
+        ${qr?.value ? `<span class="badge">${escapeHtml(qr.value)}</span>` : ''}
+      </div>
+      
+      <div class="input-group">
+        <label>Preço (moedas)</label>
+        <input type="number" id="sell-dialog-price" min="1" placeholder="Preço a pedir">
+      </div>
+      
+      <div class="input-group">
+        <label>Negociável?</label>
+        <select id="sell-dialog-negotiable">
+          <option value="true">Sim - Aceito propostas</option>
+          <option value="false">Não - Preço fixo</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label>Localidade do Prémio</label>
+        <input type="text" id="sell-dialog-location" placeholder="Ex: Lisboa, Porto, Online...">
+      </div>
+      
+      <div class="input-group">
+        <label>Tipo de Prémio</label>
+        <select id="sell-dialog-prize-type">
+          <option value="discount">Desconto</option>
+          <option value="product">Produto</option>
+          <option value="service">Serviço</option>
+          <option value="experience">Experiência</option>
+          <option value="voucher">Vale</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label>Descrição do Prémio</label>
+        <textarea id="sell-dialog-description" placeholder="Descreve o prémio que o comprador receberá..." rows="3"></textarea>
+      </div>
+      
+      <div class="info-box">
+        <p><strong>Informação importante:</strong></p>
+        <ul>
+          <li>Taxa de transação: 5% sobre o valor da venda</li>
+          <li>Receberás: <span id="dialog-net-amount">0</span> moedas</li>
+          ${qr?.type === 'PR' ? `<li>Para vender este QR precisas de 20 bandeiras da empresa ${qr.company}</li>` : ''}
+        </ul>
+      </div>
+      
+      <div class="dialog-actions">
+        <button class="btn" onclick="submitSellQr('${qrCode}')">Colocar à Venda</button>
+        <button class="btn secondary" onclick="closeSellQrDialog()">Cancelar</button>
+      </div>
+    </div>
+  `;
+  
+  const dialogContainer = document.createElement('div');
+  dialogContainer.id = 'sell-qr-dialog-container';
+  dialogContainer.innerHTML = dialogHtml;
+  document.body.appendChild(dialogContainer);
+  
+  // Evento para cálculo dinâmico da taxa (5%)
+  setTimeout(() => {
+    const priceInput = document.getElementById('sell-dialog-price');
+    const netAmount = document.getElementById('dialog-net-amount');
+    if (priceInput && netAmount) {
+      priceInput.addEventListener('input', () => {
+        const price = parseInt(priceInput.value) || 0;
+        netAmount.textContent = Math.floor(price * 0.95);
+      });
+    }
+  }, 100);
+}
+
+function closeSellQrDialog() {
+  const dialogContainer = document.getElementById('sell-qr-dialog-container');
+  if (dialogContainer) dialogContainer.remove();
+}
+
+function submitSellQr(qrCode) {
+  const player = currentPlayer();
+  if (!player) return renderPlayerAuth();
+  
+  const price = parseInt(document.getElementById('sell-dialog-price').value);
+  const negotiable = document.getElementById('sell-dialog-negotiable').value === 'true';
+  const location = document.getElementById('sell-dialog-location').value.trim();
+  const prizeType = document.getElementById('sell-dialog-prize-type').value;
+  const description = document.getElementById('sell-dialog-description').value.trim();
+  
+  if (!price || price < 1) return notify('Define um preço válido');
+  
+  const existingQr = state.qrs.find(qr => qr.code === qrCode);
+  if (existingQr?.forSale) return notify('Este QR já está à venda');
+  if (!player.qrs.includes(qrCode)) return notify('Não tens este QR');
+  
+  // Validação de Prémios (Bandeiras PR)
+  if (existingQr?.type === 'PR') {
+    const companyFlags = state.flags.filter(f => f.type === 'PR' && f.active && f.label.toLowerCase().includes(existingQr.company.toLowerCase()));
+    if (companyFlags.length < 20) return notify(`Precisas de 20 bandeiras de ${existingQr.company}. Tens: ${companyFlags.length}.`);
+  }
+  
+  // Atualização de estado prossegue aqui...
+    /** 
+ * SISTEMA INTEGRADO DE MERCADO E GESTÃO DE BINGOS
+ * (Tudo na mesma página)
+ */
+
+// 1. UTILITÁRIOS BASE
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
+
+function notify(message) {
+    console.log("Notificação:", message); // Podes trocar por um toast DOM se preferires
+    alert(message); 
+}
+
+function addAudit(msg) {
+    if (!state.auditLog) state.auditLog = [];
+    state.auditLog.unshift({ timestamp: Date.now(), message: msg });
+}
+
+// 2. BULK ACTIONS (Agendamento e Prémios em Massa)
+function submitBulkSchedule() {
+    const selectedBingos = state.selectedBingos;
+    if (selectedBingos.length === 0) return notify('Seleciona pelo menos um bingo');
+
+    const dateVal = document.getElementById('bulk-schedule-date')?.value;
+    const timeVal = document.getElementById('bulk-schedule-time')?.value;
+    if (!dateVal || !timeVal) return notify('Define data e hora');
+
+    const scheduleTimestamp = new Date(`${dateVal}T${timeVal}`).getTime();
+    if (scheduleTimestamp <= Date.now()) return notify('Data deve ser futura');
+
+    const player = currentPlayer();
+    const schedules = selectedBingos.map(bingoId => ({
+        id: uid('schedule'),
+        bingoId,
+        scheduledAt: scheduleTimestamp,
+        note: document.getElementById('bulk-schedule-note')?.value || '',
+        status: 'scheduled',
+        createdAt: Date.now(),
+        ownerId: player.id
+    }));
+
+    if (!state.bingoSchedules) state.bingoSchedules = [];
+    state.bingoSchedules.push(...schedules);
+    saveState();
+    
+    notify(`✅ ${schedules.length} agendamentos criados.`);
+    closeBulkScheduleDialog();
+    clearBingoSelection();
+}
+
+// 3. MERCADO E VENDA (QR E BINGO)
+function submitSellQr(qrCode) {
+    const player = currentPlayer();
+    const price = parseInt(document.getElementById('sell-dialog-price')?.value);
+    
+    if (!price || price < 1) return notify('Preço inválido');
+    
+    const existingQr = state.qrs.find(q => q.code === qrCode);
+    if (existingQr) {
+        Object.assign(existingQr, {
+            forSale: true,
+            price,
+            negotiable: document.getElementById('sell-dialog-negotiable').value === 'true',
+            location: document.getElementById('sell-dialog-location').value,
+            prizeType: document.getElementById('sell-dialog-prize-type').value,
+            description: document.getElementById('sell-dialog-description').value,
+            listedAt: Date.now()
+        });
+    }
+    saveState();
+    notify(`QR ${qrCode} colocado à venda.`);
+    closeSellQrDialog();
+    renderPlayerPanel('market-sell');
+}
+
+function submitSellBingo() {
+    const bingoId = document.getElementById('sell-dialog-bingo-select').value;
+    const price = parseInt(document.getElementById('sell-dialog-bingo-price').value);
+    const bingo = state.bingos.find(b => b.id === bingoId);
+    
+    if (!bingo) return notify('Bingo inválido');
+
+    // Converter Bingo em QR de Venda
+    const bingoQr = {
+        id: uid('qr'),
+        code: `BINGO-${Date.now()}`,
+        type: 'BINGO',
+        company: bingo.name,
+        price,
+        location: document.getElementById('sell-dialog-bingo-location').value,
+        description: document.getElementById('sell-dialog-bingo-description').value,
+        ownerId: bingo.ownerId,
+        forSale: true,
+        bingoId: bingo.id
+    };
+
+    state.qrs.push(bingoQr);
+    state.bingos = state.bingos.filter(b => b.id !== bingoId);
+    
+    saveState();
+    notify(`Bingo ${bingo.name} à venda.`);
+    closeSellBingoDialog();
+    renderPlayerPanel('market-sell');
+}
+
+function buyBingoQr(qrId) {
+    const player = currentPlayer();
+    const qr = state.qrs.find(q => q.id === qrId);
+    
+    if (player.coins < qr.price) return notify('Moedas insuficientes');
+    
+    // Transferência
+    player.coins -= qr.price;
+    state.bingos.push({
+        id: qr.bingoId,
+        name: qr.company,
+        ownerId: player.id
+    });
+    
+    state.qrs = state.qrs.filter(q => q.id !== qrId);
+    saveState();
+    notify('Compra efetuada com sucesso!');
+    renderPlayerPanel('market-buy');
+}
+     /**
+     * GESTÃO DE VENDA E REMOÇÃO DE BINGOS/QRS
+     */
+
+    function closeSellBingoDialog() {
+      const dialogContainer = document.getElementById('sell-bingo-dialog-container');
+      if (dialogContainer) {
+        dialogContainer.remove();
+      }
+    }
+
+    function submitSellBingo() {
+      const player = currentPlayer();
+      if (!player) return renderPlayerAuth();
+      
+      const bingoSelect = document.getElementById('sell-dialog-bingo-select');
+      const priceInput = document.getElementById('sell-dialog-bingo-price');
+      const locationInput = document.getElementById('sell-dialog-bingo-location');
+      const descriptionInput = document.getElementById('sell-dialog-bingo-description');
+      
+      if (!bingoSelect || !bingoSelect.value) return notify('Seleciona um Bingo');
+      if (!priceInput || !priceInput.value || parseInt(priceInput.value) < 1) return notify('Define um preço válido');
+      
+      const bingoId = bingoSelect.value;
+      const price = parseInt(priceInput.value);
+      const location = locationInput ? locationInput.value.trim() || 'Online' : 'Online';
+      const description = descriptionInput ? descriptionInput.value.trim() : '';
+      
+      const bingo = state.bingos.find(b => b.id === bingoId);
+      if (!bingo) return notify('Bingo não encontrado');
+      if (bingo.ownerId !== player.id) return notify('Não és dono deste Bingo');
+      
+      // Criar QR representando o Bingo para venda
+      const bingoQr = {
+        id: uid('qr'),
+        code: `BINGO-${bingo.name.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+        type: 'BINGO',
+        company: bingo.name,
+        value: `Bingo com prémio de ${bingo.reward} moedas`,
+        price: price,
+        negotiable: true,
+        location: location,
+        prizeType: 'experience',
+        description: description || `Bingo completo com direito a prémio de ${bingo.reward} moedas. Área: ${bingo.area}`,
+        sellerName: player.name,
+        ownerId: player.id,
+        forSale: true,
+        listedAt: Date.now(),
+        bingoId: bingoId
+      };
+      
+      state.qrs.push(bingoQr);
+      
+      // Remover Bingo do inventário do jogador (agora está como QR de venda)
+      state.bingos = state.bingos.filter(b => b.id !== bingoId);
+      
+      saveState();
+      addAudit(`${player.name} vendeu Bingo ${bingo.name} por ${price} moedas`);
+      notify(`Bingo ${bingo.name} colocado à venda por ${price} moedas!`);
+      
+      closeSellBingoDialog();
+      renderPlayerPanel('market-sell');
+    }
+
+    // Função para remover QR da venda
+    function removeQrFromSale(qrId) {
+      const player = currentPlayer();
+      if (!player) return renderPlayerAuth();
+      
+      const qr = state.qrs.find(q => q.id === qrId);
+      if (!qr) return notify('QR não encontrado');
+      if (qr.ownerId !== player.id) return notify('Não és dono deste QR');
+      if (!qr.forSale) return notify('Este QR não está à venda');
+      
+      // Remover da venda
+      qr.forSale = false;
+      qr.soldAt = null;
+      qr.buyerName = null;
+      
+      // Se for um BINGO que foi removido da venda, logicamente deveria retornar ao dono
+      // Opcional: Se for Bingo, podes querer devolvê-lo ao state.bingos aqui
+      
+      saveState();
+      addAudit(`${player.name} removeu QR ${qr.code} da venda`);
+      notify(`QR ${qr.code} removido da venda!`);
+      
+      // Atualizar porta-moedas (certifica-te que esta função existe no teu código)
+      if (typeof updateSidebarCoins === 'function') {
+        updateSidebarCoins();
+      }
+      
+      // Atualizar painel
+      renderPlayerPanel('market-buy');
+    }
+      /**
+ * SISTEMA DE AUTENTICAÇÃO E ATUALIZAÇÃO DE INTERFACE
+ */
+
+// 1. GESTÃO DE MOEDAS E UI
+function updateSidebarCoins() {
+    const player = currentPlayer();
+    if (!player) return;
+    
+    const sidebarCoins = document.getElementById('sidebar-coins');
+    if (sidebarCoins) {
+        sidebarCoins.textContent = player.coins;
+    }
+}
+
+function updateCoinsAfterTransaction() {
+    updateSidebarCoins();
+    
+    // Atualizar todos os elementos de wallet na página atual
+    const walletHeaders = document.querySelectorAll('.wallet-header .coins-amount');
+    const player = currentPlayer();
+    if (player && walletHeaders.length > 0) {
+        walletHeaders.forEach(header => {
+            header.textContent = `${player.coins} moedas`;
+        });
+    }
+}
+
+// 2. UTILITÁRIO DE INPUT
+function value(id) {
+    return document.getElementById(id)?.value.trim() || '';
+}
+
+// 3. AUTENTICAÇÃO DE EMPRESA (Interface)
+function renderCompanyAuth() {
+    const content = document.getElementById('company-content');
+    if (!content) return;
+    
+    content.innerHTML = `
+        <div class="grid two">
+            <div class="auth-box">
+                <h2>Login Empresa</h2>
+                <div class="input-group"><label>NIF</label><input id="company-login-nif" value="123456789"></div>
+                <div class="input-group"><label>Senha</label><input id="company-login-password" type="password" value="123456"></div>
+                <button class="btn" onclick="loginCompany()">Entrar</button>
+            </div>
+            <div class="auth-box">
+                <h2>Registar Empresa</h2>
+                <div class="input-group"><label>Nome</label><input id="company-register-name" placeholder="Nome da empresa"></div>
+                <div class="input-group"><label>NIF</label><input id="company-register-nif" placeholder="NIF"></div>
+                <div class="input-group"><label>Email</label><input id="company-register-email" placeholder="empresa@exemplo.pt"></div>
+                <div class="input-group"><label>Senha</label><input id="company-register-password" type="password" placeholder="Senha"></div>
+                <button class="btn" onclick="registerCompany()">Criar empresa</button>
+            </div>
+        </div>
+    `;
+}
+
+// 4. AUTENTICAÇÃO DE JOGADOR
+function loginPlayer() {
+    const email = value('player-login-email').toLowerCase();
+    const password = value('player-login-password');
+    
+    const player = state.players.find(item => item.email.toLowerCase() === email && item.password === password);
+    
+    if (!player) return notify('Login de jogador inválido');
+    
+    state.session = { type: 'player', id: player.id };
+    saveState();
+    
+    addAudit('Jogador entrou: ' + player.name);
+    notify('Bem-vindo, ' + player.name);
+    
+    renderPlayerPanel('game');
+    startTutorial('player');
+}
+
+function registerPlayer() {
+    const name = value('player-register-name');
+    const email = value('player-register-email').toLowerCase();
+    const phone = value('player-register-phone');
+    const password = value('player-register-password');
+    
+    if (!name || !email || !password) return notify('Preenche nome, email e senha');
+    if (state.players.some(item => item.email.toLowerCase() === email)) return notify('Este email já existe');
+    
+    const player = { 
+        id: uid('player'), 
+        name, 
+        email, 
+        phone, 
+        password, 
+        energy: 100, 
+        hunger: 80, 
+        mood: 80, 
+        coins: 150, 
+        flags: 0, 
+        zap: 0, 
+        pr: 0, 
+        qrs: [], 
+        position: { x: 50, y: 50 }, 
+        createdAt: Date.now() 
+    };
+    
+    state.players.push(player);
+    state.session = { type: 'player', id: player.id };
+    
+    // Inicialização do ambiente do jogador
+    if (typeof reactivePopulate === 'function') {
+        reactivePopulate(player.position, 'Zona de ' + name);
+    }
+    
+    saveState();
+    addAudit('Jogador registado: ' + player.name);
+    notify('Conta de jogador criada');
+    
+    renderPlayerPanel('game');
+    startTutorial('player');
+}

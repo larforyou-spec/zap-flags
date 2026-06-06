@@ -1,1172 +1,1332 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>ZAP-FLAGS 3.1 - Jogador</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAP FLAGS</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        html, body { width: 100%; height: 100%; }
-        body { margin: 0; font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; overflow: hidden; }
-        main { min-height: 100vh; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 18px; }
-        #auth-container { max-width: 520px; margin: 48px auto; }
-        #game-container { display: none; }
-        #map { width: 100vw; height: 100vh; position: absolute; inset: 0; z-index: 1; touch-action: pane-x pane-y; }
-        .game-title { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 1001; margin: 0; padding: 10px 16px; border-radius: 999px; background: rgba(15, 23, 42, 0.82); border: 1px solid rgba(148, 163, 184, 0.35); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32); backdrop-filter: blur(12px); font-size: 18px; }
-        .hud-container { position: absolute; inset: 0; z-index: 1000; pointer-events: none; }
-        .top-bar { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .stat { min-width: 78px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgba(15, 23, 42, 0.86); border: 1px solid rgba(148, 163, 184, 0.34); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25); backdrop-filter: blur(12px); font-weight: 800; }
-        .action-buttons { display: flex; gap: 10px; pointer-events: auto; }
-        .action-buttons button { width: 48px; height: 48px; border-radius: 50%; background: rgba(15, 23, 42, 0.9); color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.45); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3); }
-        .bottom-right-panel { position: absolute; right: 18px; bottom: 18px; width: min(360px, calc(100vw - 36px)); max-height: 42vh; overflow: auto; padding: 16px; border-radius: 18px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.35); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); backdrop-filter: blur(14px); pointer-events: auto; }
-        .map-ui-overlay { position: absolute; top: 18px; right: 18px; z-index: 1002; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.55); border: 1px solid rgba(148, 163, 184, 0.28); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28); backdrop-filter: blur(10px); pointer-events: auto; cursor: move; touch-action: none; user-select: none; }
-        .map-ui-overlay > button { background: #111111; border-radius: 50%; width: 55px; height: 55px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .map-ui-overlay > button:hover { transform: scale(1.1); }
-        #walletBtn { color: #ffaa00; border: 2px solid #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.4); }
-        #backpackBtn { color: #00ff88; border: 2px solid #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
-        #tradeBtn { color: #00ccff; border: 2px solid #00ccff; box-shadow: 0 0 15px rgba(0, 204, 255, 0.4); }
-        #walletModal, #backpackModal, #tradeModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2001; background: #141414; padding: 20px; border-radius: 12px; color: #ffffff; box-shadow: 0 0 30px rgba(0,0,0,0.85); }
-        #walletModal { border: 2px solid #ffaa00; width: 290px; }
-        #backpackModal { border: 2px solid #00ff88; width: 310px; max-height: 380px; overflow-y: auto; }
-        #tradeModal { border: 2px solid #00ccff; width: 340px; max-height: 420px; overflow-y: auto; }
-        .game-modal { user-select: none; touch-action: none; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin: -8px -8px 15px -8px; border-bottom: 1px solid #2a2a2a; padding: 8px 36px 8px 8px; cursor: move; }
-        .modal-header h4 { margin: 0; font-family: monospace; font-size: 16px; }
-        #closeWalletBtn, #closeBackpackBtn, #closeTradeBtn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ff4444; font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px; width: auto; height: auto; display: inline-flex; align-items: center; justify-content: center; pointer-events: auto; z-index: 1; }
-        #walletBalance { font-size: 30px; font-weight: bold; color: #ffaa00; font-family: monospace; }
-        #backpackContents { display: flex; flex-direction: column; gap: 8px; font-family: sans-serif; font-size: 13px; }
-        .trade-form { background: #202020; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #333; }
-        .trade-form-label, .trade-list-label { font-size: 11px; color: #00ccff; font-weight: bold; text-transform: uppercase; }
-        .trade-form input { width: 100%; background: #111; border: 1px solid #444; padding: 6px; margin-top: 5px; border-radius: 4px; color: white; font-size: 12px; }
-        #sendTradeBtn { width: 100%; background: #00ccff; color: #000; border: none; padding: 6px; margin-top: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        #tradeListContents { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; font-size: 12px; }
-        #alertNotificationArea { position: fixed; bottom: 160px; right: 25px; z-index: 2500; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 280px; }
-        #levelUpOverlay { position: fixed; inset: 0; z-index: 4000; display: none; align-items: center; justify-content: center; pointer-events: none; background: rgba(2, 6, 23, 0.24); }
-        #levelUpOverlay.active { display: flex; }
-        .level-up-card { padding: 24px; border-radius: 22px; text-align: center; color: #ecfeff; background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(0, 230, 118, 0.88)); border: 2px solid #00E676; box-shadow: 0 0 45px rgba(0, 230, 118, 0.75); animation: levelPulse 0.8s ease-in-out infinite alternate; }
-        .level-up-card h2 { margin: 0 0 10px; font-size: 26px; }
-        .party-burst { position: fixed; z-index: 4001; font-size: 28px; animation: partyFloat 3s ease-out forwards; pointer-events: none; }
-        @keyframes levelPulse { from { transform: scale(1); } to { transform: scale(1.04); } }
-        @keyframes partyFloat { 0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 1; } 100% { transform: translateY(-180px) scale(1.5) rotate(360deg); opacity: 0; } }
-        .hidden { display: none; }
-        .debug-panel { position: absolute; left: 18px; bottom: 18px; z-index: 1000; width: min(360px, calc(100vw - 36px)); pointer-events: auto; }
-        .debug-panel details { background: rgba(15, 23, 42, 0.82); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 14px; padding: 10px; backdrop-filter: blur(12px); }
-        .debug-panel pre { max-height: 160px; margin-bottom: 0; }
-        button { border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
-        input { width: 100%; box-sizing: border-box; margin: 5px 0 10px; padding: 10px; border-radius: 10px; border: 1px solid #334155; }
-        .primary { background: #00ff88; color: #052e16; }
-        .secondary { background: #38bdf8; color: #082f49; }
-        pre { white-space: pre-wrap; background: #020617; padding: 12px; border-radius: 10px; overflow: auto; }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Courier New',monospace;background:#000;color:#0f0;min-height:100vh;}
+        .page{display:none;min-height:100vh;}
+        .page.ativa{display:block;}
+        .centro{max-width:440px;margin:0 auto;padding:20px;text-align:center;}
+        h1{font-size:2.5rem;text-shadow:0 0 20px #0f0;margin-bottom:5px;}
+        h2{font-size:1.2rem;margin-bottom:15px;border-bottom:1px solid #0f0;padding-bottom:10px;}
 
-        .sponsored-qr-panel { position: absolute; right: 18px; bottom: 18px; z-index: 1001; width: min(380px, calc(100vw - 36px)); max-height: 46vh; display: grid; grid-template-rows: auto 1fr; border-radius: 18px; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(0, 255, 136, 0.35); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(14px); pointer-events: auto; overflow: hidden; }
-        .sponsored-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px; border-bottom: 1px solid rgba(148, 163, 184, 0.24); }
-        .sponsored-tab { border-radius: 12px; padding: 8px; background: #111827; color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); font-size: 11px; }
-        .sponsored-tab.active { color: #031b10; background: linear-gradient(45deg, #00ff88, #00ccff); border-color: transparent; }
-        .sponsored-list { display: none; overflow-y: auto; padding: 10px; max-height: calc(46vh - 54px); }
-        .sponsored-list.active { display: flex; flex-direction: column; gap: 8px; }
-        .sponsored-card { padding: 9px; border-radius: 12px; background: rgba(2, 6, 23, 0.76); border-left: 3px solid #00ff88; font-size: 12px; }
-        .sponsored-card strong { color: #ffffff; }
-        .sponsored-card small { color: #94a3b8; display: block; margin-top: 4px; }
-        .sponsored-buy { margin-top: 7px; width: 100%; border: 0; border-radius: 8px; padding: 7px; background: #ffaa00; color: #111; font-weight: 800; }
+        /* INPUTS */
+        .f{width:100%;background:#111;color:#0f0;border:1px solid #0f0;padding:11px;margin:5px 0;font-size:0.95rem;font-family:'Courier New',monospace;border-radius:4px;}
+        .f:focus{outline:none;border-color:#0ff;box-shadow:0 0 8px #0ff;}
+        select.f option{background:#111;}
 
+        /* BOTÕES */
+        .b{width:100%;padding:13px;margin:5px 0;font-size:0.95rem;font-weight:bold;cursor:pointer;font-family:'Courier New',monospace;border:none;border-radius:4px;transition:all 0.2s;}
+        .bv{background:#0f0;color:#000;}.bv:hover{background:#0ff;}
+        .bc{background:#222;color:#0f0;border:1px solid #0f0;}.bc:hover{background:#333;}
+        .bo{background:linear-gradient(45deg,#f80,#ff0);color:#000;}.bo:hover{background:#ff0;}
+        .br{background:#300;color:#f00;border:1px solid #f00;}.br:hover{background:#500;}
+        .bvol{background:#111;color:#0aa;border:1px solid #0aa;}.bvol:hover{background:#0aa;color:#000;}
+        .badm{background:linear-gradient(45deg,#800,#f00);color:#fff;border:2px solid #f88;}.badm:hover{background:#f00;}
+
+        /* MENSAGENS */
+        .m{padding:10px;margin:6px 0;border-radius:4px;display:none;font-size:0.86rem;}
+        .m.e{background:#300;border:1px solid #f00;color:#f00;display:block;}
+        .m.s{background:#030;border:1px solid #0f0;color:#0f0;display:block;}
+        .m.i{background:#003;border:1px solid #0ff;color:#0ff;display:block;}
+        .m.a{background:#330;border:1px solid #ff0;color:#ff0;display:block;}
+
+        /* SECÇÕES */
+        .sec{background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:13px;margin:8px 0;text-align:left;}
+        .sec-t{color:#0ff;font-size:0.88rem;font-weight:bold;margin-bottom:8px;}
+        .row2{display:flex;gap:8px;}
+
+        /* CÓDIGO */
+        .cod{font-size:2.2rem;letter-spacing:12px;color:#0ff;background:#001122;border:2px solid #0ff;padding:15px;margin:12px 0;border-radius:8px;text-align:center;}
+        .cod-f{text-align:center;font-size:1.8rem;letter-spacing:8px;}
+        .tmr{color:#ff0;font-size:0.88rem;margin:5px 0;text-align:center;}
+
+        /* HUD */
+        .hud{position:fixed;top:0;left:0;right:0;z-index:3000;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+        .hud-j{background:rgba(0,20,0,0.97);border-bottom:2px solid #0f0;}
+        .hud-pr{background:rgba(20,15,0,0.97);border-bottom:2px solid #ff0;}
+        .hud-adm{background:rgba(20,0,0,0.97);border-bottom:2px solid #f00;}
+
+        /* MAPA */
+        #map-jogo{position:fixed;top:52px;left:0;right:0;bottom:44px;z-index:1;}
+        .map-box{width:100%;height:320px;border-radius:8px;border:2px solid #0f0;margin:8px 0;}
+        .map-box-pr{border-color:#ff0;}
+
+        /* RODAPÉ */
+        #rodape{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.97);border-top:2px solid #ff0;height:44px;z-index:3000;overflow:hidden;display:flex;align-items:center;}
+        #ticker{display:inline-flex;gap:80px;white-space:nowrap;animation:scroll 25s linear infinite;padding-left:100%;}
+        @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .tick{color:#ff0;font-size:0.8rem;font-weight:bold;}
+        .tick span{color:#0ff;}
+
+        /* BINGO */
+        #bingo-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;border:4px solid #ff0;border-radius:16px;padding:25px 20px;z-index:9999;text-align:center;display:none;width:88%;max-width:320px;animation:popIn 0.4s ease;}
+        @keyframes popIn{from{transform:translate(-50%,-50%) scale(0.2);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+
+        /* GPS */
+        #gps-box{position:fixed;bottom:50px;right:8px;z-index:2000;background:rgba(0,0,0,0.92);border:1px solid #0f0;border-radius:20px;padding:4px 10px;font-size:0.7rem;}
+
+        /* MODAL */
+        #ovl{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:8000;display:none;}
+        #modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;border:3px solid #ff0;border-radius:12px;padding:22px;z-index:8001;text-align:center;width:88%;max-width:350px;display:none;}
+
+        /* TABS PR */
+        .pr-tabs{display:flex;gap:2px;overflow-x:auto;background:#000;border-bottom:1px solid #ff0;padding:6px 6px 0;margin-top:52px;}
+        .pr-tab{padding:6px 10px;background:#111;border:1px solid #333;color:#0aa;cursor:pointer;font-family:'Courier New',monospace;font-size:0.72rem;border-radius:4px 4px 0 0;white-space:nowrap;}
+        .pr-tab.a{background:#1a0f00;border-color:#ff0;color:#ff0;font-weight:bold;}
+        .pr-tc{display:none;padding:10px;max-width:520px;margin:0 auto;}
+        .pr-tc.a{display:block;}
+
+        /* TABS ADM */
+        .adm-tabs{display:flex;gap:2px;overflow-x:auto;background:#000;border-bottom:1px solid #f00;padding:6px 6px 0;margin-top:52px;}
+        .adm-tab{padding:6px 10px;background:#111;border:1px solid #333;color:#f88;cursor:pointer;font-family:'Courier New',monospace;font-size:0.72rem;border-radius:4px 4px 0 0;white-space:nowrap;}
+        .adm-tab.a{background:#200;border-color:#f00;color:#ff0;font-weight:bold;}
+        .adm-tc{display:none;padding:10px;max-width:520px;margin:0 auto;}
+        .adm-tc.a{display:block;}
+
+        /* CARDS */
+        .ic{background:#0a0a0a;border:1px solid #0f0;border-radius:8px;padding:12px;margin:8px 0;}
+        .ic-y{border-color:#ff0;}.ic-r{border-color:#f00;}
+        .il{padding:5px 0;border-bottom:1px solid #111;font-size:0.82rem;}
+        .il:last-child{border-bottom:none;}
+        .il-l{color:#0aa;font-size:0.7rem;}
+        .pb{width:100%;height:10px;background:#222;border-radius:5px;margin:6px 0;}
+        .pf{height:100%;background:linear-gradient(90deg,#0f0,#0ff);border-radius:5px;}
+        .sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
+        .sb{background:#0a0a0a;border:1px solid #0f0;border-radius:8px;padding:10px;text-align:center;}
+        .sb-n{font-size:1.5rem;color:#0ff;font-weight:bold;}
+        .sb-t{font-size:0.7rem;color:#0aa;margin-top:3px;}
+        .packs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
+        .pack{border:2px solid #333;border-radius:8px;padding:10px;cursor:pointer;transition:all 0.2s;text-align:center;background:#111;}
+        .pack:hover{border-color:#0ff;}.pack.sel{border-color:#ff0;background:#1a1500;}
+        .uc{background:#111;border:1px solid #333;border-radius:4px;padding:8px;margin:4px 0;font-size:0.8rem;}
+        .scroll{max-height:68vh;overflow-y:auto;padding-right:3px;}
+        .scroll::-webkit-scrollbar{width:3px;}
+        .scroll::-webkit-scrollbar-thumb{background:#0f0;}
+        .lnk{color:#0ff;cursor:pointer;text-decoration:underline;font-size:0.86rem;}
+        .chk{display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;color:#0aa;line-height:1.5;cursor:pointer;}
+        .chk input{margin-top:3px;width:auto;flex-shrink:0;}
+        .badge-adm{background:linear-gradient(45deg,#f00,#f80);color:#fff;padding:2px 7px;border-radius:20px;font-size:0.68rem;font-weight:bold;}
     </style>
 </head>
 <body>
-    <main>
-        <section class="card" id="auth-container" style="margin-bottom:16px;">
-            <h2>Entrar ou criar conta</h2>
-            <label for="auth-name">Nome</label>
-            <input id="auth-name" placeholder="Nome do jogador" value="Carlos" required>
-            <label for="auth-email">E-mail</label>
-            <input id="auth-email" type="email" placeholder="carlos@hotmail.com" value="carlos@hotmail.com" required>
-            <label for="auth-password">Senha</label>
-            <input id="auth-password" type="password" placeholder="Senha" value="123456" required>
-            <label for="auth-password-confirm">Contra-senha</label>
-            <input id="auth-password-confirm" type="password" placeholder="Repete a senha" value="123456" required>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-                <button type="button" class="primary" id="login-player">Entrar</button>
-                <button type="button" class="secondary" id="register-player">Registar jogador</button>
-            </div>
-            <pre id="auth-output">Se já tens token em localStorage.token, o perfil carrega automaticamente.</pre>
-        </section>
 
-        <section id="game-container">
-            <div id="map"></div>
-            <div id="levelUpOverlay">
-                <div class="level-up-card">
-                    <h2>PARABÉNS!</h2>
-                    <p>Subiste de Nível! Radar Expandido para 8m!</p>
+<!-- ======= P0: INÍCIO ======= -->
+<div id="p0" class="page ativa">
+    <div class="centro" style="padding-top:40px;">
+        <h1>🏴 ZAP FLAGS</h1>
+        <p style="color:#0aa;margin-bottom:30px;font-size:0.9rem;">Caça ao Tesouro Digital</p>
+        <button class="b bv" onclick="ir('p-login')">🎮 ENTRAR COMO JOGADOR</button>
+        <button class="b bc" onclick="ir('p-reg')">📝 CRIAR CONTA DE JOGADOR</button>
+        <br>
+        <button class="b bo" onclick="ir('p-pr0')">🏪 ÁREA DO LOJISTA</button>
+        <br>
+        <button class="b badm" onclick="ir('p-adm-login')">⚙️ ADMINISTRADOR</button>
+        <p style="color:#222;font-size:0.65rem;margin-top:20px;">v4.0 © 2025 ZAP FLAGS</p>
+    </div>
+</div>
+
+<!-- ======= P-LOGIN JOGADOR ======= -->
+<div id="p-login" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p0')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2>🎮 ENTRAR NO JOGO</h2>
+        <div id="m-login" class="m"></div>
+        <input class="f" type="email"    id="l-email" placeholder="📧 Email" autocomplete="email">
+        <input class="f" type="password" id="l-pass"  placeholder="🔑 Senha">
+        <button class="b bv" onclick="fazerLogin()">▶ ENTRAR</button>
+        <br><span class="lnk" onclick="ir('p-reg')">Não tens conta? Regista-te</span>
+    </div>
+</div>
+
+<!-- ======= P-REG JOGADOR ======= -->
+<div id="p-reg" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p0')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2>📝 CRIAR CONTA DE JOGADOR</h2>
+        <div id="m-reg" class="m"></div>
+        <input class="f" type="text"     id="r-nome"  placeholder="👤 Nome completo">
+        <input class="f" type="email"    id="r-email" placeholder="📧 Email">
+        <input class="f" type="tel"      id="r-tel"   placeholder="📱 Telemóvel">
+        <input class="f" type="password" id="r-pass"  placeholder="🔑 Senha (mín. 6 car.)">
+        <input class="f" type="password" id="r-pass2" placeholder="🔑 Confirmar Senha">
+        <p style="font-size:0.82rem;color:#0aa;margin:8px 0 4px;">📨 Código por:</p>
+        <div style="display:flex;gap:8px;">
+            <button id="met-s" class="b bv" onclick="setMet('sms')"   style="flex:1;padding:9px;">📱 SMS</button>
+            <button id="met-e" class="b bc" onclick="setMet('email')" style="flex:1;padding:9px;">📧 Email</button>
+        </div>
+        <button class="b bv" style="margin-top:8px;" onclick="fazerReg()">✅ REGISTAR</button>
+        <br><span class="lnk" onclick="ir('p-login')">Já tens conta? Entra aqui</span>
+    </div>
+</div>
+
+<!-- ======= P-VERIF JOGADOR ======= -->
+<div id="p-verif" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p-reg')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2>🔢 VERIFICAR CONTA</h2>
+        <div id="m-verif" class="m"></div>
+        <p id="v-txt" style="color:#0aa;font-size:0.88rem;margin:8px 0;"></p>
+        <p style="color:#444;font-size:0.72rem;">⚠️ SIMULAÇÃO - Código:</p>
+        <div class="cod" id="v-cod">----</div>
+        <input class="f cod-f" type="number" id="v-in" placeholder="0000" maxlength="4" oninput="this.value=this.value.slice(0,4)">
+        <div class="tmr">⏱️ <span id="v-tmr">05:00</span></div>
+        <button class="b bv" id="v-btn" onclick="confirmarCod()">✅ CONFIRMAR</button>
+        <button class="b bc" id="v-reen" onclick="reenviar()" disabled>🔄 REENVIAR</button>
+    </div>
+</div>
+
+<!-- ======= P-SUCESSO REG ======= -->
+<div id="p-suc" class="page">
+    <div class="centro">
+        <div style="font-size:4rem;margin:20px 0;">🎉</div>
+        <h2>CONTA CRIADA!</h2>
+        <div style="background:#030;border:1px solid #0f0;padding:18px;margin:15px 0;border-radius:8px;">
+            <p id="suc-n" style="color:#0ff;font-size:1.1rem;margin:4px 0;"></p>
+            <p id="suc-e" style="color:#0aa;"></p>
+        </div>
+        <button class="b bv" onclick="irLoginSuc()">🎮 IR PARA O LOGIN</button>
+    </div>
+</div>
+
+<!-- ======= P-JOGO ======= -->
+<div id="p-jogo" class="page" style="padding:0;">
+    <div class="hud hud-j">
+        <div>
+            <div style="font-weight:bold;font-size:0.83rem;" id="j-nome">👤 ---</div>
+            <div style="font-size:0.65rem;color:#0aa;" id="j-email">📧 ---</div>
+        </div>
+        <div style="font-size:0.78rem;text-align:center;">
+            <span style="color:#0ff;">🏴<span id="j-flags">0</span></span>&nbsp;
+            <span style="color:#0f0;">⚡<span id="j-en">100</span>%</span>&nbsp;
+            <span style="color:#ff0;">🎫<span id="j-qrs">0</span></span>
+            <span id="j-badge"></span>
+        </div>
+        <button class="b bc" style="width:auto;padding:5px 8px;font-size:0.72rem;" onclick="logoutJ()">SAIR</button>
+    </div>
+    <div id="map-jogo"></div>
+    <div id="gps-box">📍 A localizar...</div>
+    <div id="rodape"><div id="ticker"></div></div>
+</div>
+
+<!-- BINGO POPUP -->
+<div id="bingo-pop">
+    <div style="font-size:2.5rem;">🎉</div>
+    <h2 style="color:#ff0;font-size:2rem;text-shadow:0 0 15px #ff0;">BINGO!</h2>
+    <p id="bingo-nome" style="color:#0ff;font-size:1rem;margin:10px 0;"></p>
+    <p style="color:#0f0;font-size:0.82rem;">ganhou 10 bandeiras e um QR Code! 🏆</p>
+    <button class="b bo" style="margin-top:12px;width:auto;padding:8px 20px;" onclick="fecharBingo()">🎊 FANTÁSTICO!</button>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div id="ovl" onclick="fecharModal()"></div>
+<div id="modal">
+    <p style="color:#ff0;font-size:0.88rem;margin-bottom:12px;" id="modal-txt"></p>
+    <input class="f" type="password" id="modal-pass" placeholder="🔑 Código 321321" style="text-align:center;letter-spacing:4px;">
+    <div id="modal-m" class="m"></div>
+    <button class="b bo" onclick="confirmarModal()" style="margin-top:6px;">✅ CONFIRMAR</button>
+    <button class="b bvol" onclick="fecharModal()">❌ CANCELAR</button>
+</div>
+
+<!-- ======= P-PR0: INÍCIO LOJISTA ======= -->
+<div id="p-pr0" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p0')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h1 style="color:#ff0;">🏪 ZAP</h1>
+        <p style="color:#ff0;margin-bottom:5px;">ÁREA DO LOJISTA</p>
+        <p style="color:#0aa;font-size:0.8rem;margin-bottom:20px;">Promova o seu negócio</p>
+        <button class="b bv" onclick="ir('p-pr-login')">🔐 ENTRAR NA MINHA CONTA</button>
+        <button class="b bo" onclick="ir('p-pr-reg')">📝 REGISTAR EMPRESA</button>
+        <div class="sec" style="margin-top:20px;text-align:left;">
+            <p style="color:#ff0;font-size:0.82rem;margin-bottom:6px;">💡 COMO FUNCIONA?</p>
+            <p style="color:#0aa;font-size:0.76rem;line-height:1.9;">1️⃣ Regista a tua empresa<br>2️⃣ Escolhe um pacote de bandeiras<br>3️⃣ Jogadores capturam as tuas bandeiras<br>4️⃣ Ganham QR Codes com prémios<br>5️⃣ Visitam a tua loja para resgatar<br>6️⃣ Tu validas o QR e entregas o prémio</p>
+        </div>
+    </div>
+</div>
+
+<!-- ======= P-PR-LOGIN ======= -->
+<div id="p-pr-login" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p-pr0')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2 style="color:#ff0;border-color:#ff0;">🔐 LOGIN LOJISTA</h2>
+        <div id="m-pr-login" class="m"></div>
+        <input class="f" type="email"    id="pl-email" placeholder="📧 Email da empresa">
+        <input class="f" type="password" id="pl-pass"  placeholder="🔑 Senha">
+        <button class="b bv" onclick="fazerLoginPR()">▶ ENTRAR</button>
+        <button class="b bvol" onclick="ir('p-pr0')">← VOLTAR</button>
+        <br><span class="lnk" onclick="ir('p-pr-reg')">Registar empresa nova</span>
+    </div>
+</div>
+
+<!-- ======= P-PR-REG ======= -->
+<div id="p-pr-reg" class="page">
+    <div style="max-width:480px;margin:0 auto;padding:15px;">
+        <button class="b bvol" onclick="ir('p-pr0')" style="margin-bottom:10px;">← VOLTAR</button>
+        <h2 style="text-align:center;color:#ff0;border-color:#ff0;">📝 REGISTAR EMPRESA</h2>
+        <div id="m-pr-reg" class="m"></div>
+        <div class="scroll">
+            <div class="sec">
+                <div class="sec-t">📍 LOCALIZAÇÃO NO MAPA (clica para marcar)</div>
+                <div id="map-pr-r" class="map-box"></div>
+                <p id="coord-txt" style="font-size:0.75rem;color:#0aa;margin-top:4px;">🖱️ Clica no mapa para marcar a empresa</p>
+                <div class="row2">
+                    <input class="f" type="text" id="pr-lat" placeholder="Latitude"  readonly style="color:#0ff;">
+                    <input class="f" type="text" id="pr-lng" placeholder="Longitude" readonly style="color:#0ff;">
                 </div>
             </div>
-            <h1 class="game-title">ZAP-FLAGS 3.1 - <span id="username-display">A identificar...</span></h1>
-
-            <div class="hud-container">
-                <div class="top-bar">
-                    <div class="stat"><i class="icon-energy">⚡</i> <span id="energy-val">--</span></div>
-                    <div class="stat"><i class="icon-flag">🚩</i> <span id="flags-val">0</span></div>
-                    <div class="stat"><i class="icon-gold-flag">🏆</i> <span id="premium-flags-val">0</span></div>
-                    <div class="stat"><i class="icon-qr">▣</i> <span id="qr-val">0</span></div>
-                    <button type="button" id="debugFlags95Btn" title="Teste: colocar 95 bandeiras">95</button>
-                </div>
-
-                <div id="market-panel" class="bottom-right-panel hidden">
-                    <h3>Mercado Público</h3>
-                    <div class="market-list">Mercado em preparação.</div>
-                </div>
-
-                <div class="map-ui-overlay">
-                    <div class="action-buttons">
-                        <button id="btn-dialog" title="Diálogos">💬</button>
-                        <button id="btn-sell" title="Pôr à Venda">🛒</button>
-                        <button id="btn-market-list" title="Ver Mercado Público">🏪</button>
-                    </div>
-                    <button id="walletBtn" title="Porta-Moedas">👛</button>
-                    <button id="backpackBtn" title="Mochila / Inventário">🎒</button>
-                    <button id="tradeBtn" title="Negociações e Trocas">🤝</button>
-                </div>
-
-                <div id="walletModal" class="game-modal">
-                    <div class="modal-header">
-                        <h4 style="color: #ffaa00;">🪙 SALDO ATUAL</h4>
-                        <button id="closeWalletBtn">✕</button>
-                    </div>
-                    <div style="text-align: center; padding: 10px 0;">
-                        <div id="walletBalance">1500 ZAPs</div>
-                    </div>
-                </div>
-
-                <div id="backpackModal" class="game-modal">
-                    <div class="modal-header">
-                        <h4 style="color: #00ff88;">🎒 INVENTÁRIO REAL</h4>
-                        <button id="closeBackpackBtn">✕</button>
-                    </div>
-                    <div id="backpackContents">A carregar...</div>
-                </div>
-
-                <div id="tradeModal" class="game-modal">
-                    <div class="modal-header">
-                        <h4 style="color: #00ccff;">🤝 JANELA DE TROCAS</h4>
-                        <button id="closeTradeBtn">✕</button>
-                    </div>
-
-                    <div class="trade-form">
-                        <span class="trade-form-label">Nova Proposta</span>
-                        <input id="tradeToPlayerId" type="number" placeholder="ID do Outro Jogador">
-                        <input id="tradeOfferedItem" type="text" placeholder="O que tu ofereces (Ex: Token A)">
-                        <input id="tradeRequestedItem" type="text" placeholder="O que tu pedes (Ex: Voucher B)">
-                        <button id="sendTradeBtn">Enviar Proposta de Troca</button>
-                    </div>
-
-                    <span class="trade-list-label">Propostas Ativas / Histórico</span>
-                    <div id="tradeListContents">A carregar propostas...</div>
-                </div>
-
-
-                <div id="sponsoredQrPanel" class="sponsored-qr-panel">
-                    <div class="sponsored-tabs">
-                        <button class="sponsored-tab active" data-sponsored-tab="history">Historico</button>
-                        <button class="sponsored-tab" data-sponsored-tab="market">Mercado QR</button>
-                    </div>
-                    <div id="sponsoredHistoryList" class="sponsored-list active"><div class="sponsored-card">A carregar historico...</div></div>
-                    <div id="sponsoredMarketList" class="sponsored-list"><div class="sponsored-card">A carregar mercado...</div></div>
-                </div>
-
-                <div id="alertNotificationArea"></div>
+            <div class="sec">
+                <div class="sec-t">🏢 DADOS DA EMPRESA</div>
+                <input class="f" type="text" id="pr-ne"   placeholder="* Nome da Empresa">
+                <input class="f" type="text" id="pr-nc"   placeholder="Nome Comercial (opcional)">
+                <input class="f" type="text" id="pr-nif"  placeholder="* NIF (9 dígitos)" maxlength="9">
+                <select class="f" id="pr-tipo">
+                    <option value="">* Tipo de Empresa</option>
+                    <option>Empresário em Nome Individual</option>
+                    <option>Sociedade por Quotas (Lda.)</option>
+                    <option>Sociedade Anónima (S.A.)</option>
+                    <option>Associação / Fundação</option>
+                    <option>Outro</option>
+                </select>
+                <select class="f" id="pr-ativ">
+                    <option value="">* Setor de Atividade</option>
+                    <optgroup label="🍽️ Restauração"><option>Restaurante</option><option>Café / Pastelaria</option><option>Bar / Pub</option><option>Hotel</option><option>Take-Away</option></optgroup>
+                    <optgroup label="🛍️ Comércio"><option>Supermercado</option><option>Roupa / Moda</option><option>Eletrónica</option><option>Farmácia</option><option>Desporto</option><option>Outro Comércio</option></optgroup>
+                    <optgroup label="💆 Serviços"><option>Cabeleireiro</option><option>Ginásio</option><option>Clínica</option><option>Estética</option><option>Outro Serviço</option></optgroup>
+                    <optgroup label="🎭 Lazer"><option>Cinema</option><option>Escola</option><option>Outro Lazer</option></optgroup>
+                </select>
+                <input class="f" type="text" id="pr-desc" placeholder="Breve descrição">
             </div>
+            <div class="sec">
+                <div class="sec-t">📍 MORADA</div>
+                <input class="f" type="text" id="pr-rua"   placeholder="* Rua e Número">
+                <input class="f" type="text" id="pr-andar" placeholder="Andar/Loja (opcional)">
+                <div class="row2">
+                    <input class="f" type="text" id="pr-cp"  placeholder="* Cód. Postal">
+                    <input class="f" type="text" id="pr-loc" placeholder="* Localidade">
+                </div>
+                <select class="f" id="pr-dist">
+                    <option value="">* Distrito</option>
+                    <option>Aveiro</option><option>Beja</option><option>Braga</option><option>Bragança</option><option>Castelo Branco</option><option>Coimbra</option><option>Évora</option><option>Faro</option><option>Guarda</option><option>Leiria</option><option>Lisboa</option><option>Portalegre</option><option>Porto</option><option>Santarém</option><option>Setúbal</option><option>Viana do Castelo</option><option>Vila Real</option><option>Viseu</option><option>Ilha da Madeira</option><option>Ilha dos Açores</option>
+                </select>
+            </div>
+            <div class="sec">
+                <div class="sec-t">📞 CONTACTOS</div>
+                <input class="f" type="tel"   id="pr-tel"   placeholder="* Telefone">
+                <input class="f" type="email" id="pr-email" placeholder="* Email da Empresa">
+                <input class="f" type="url"   id="pr-web"   placeholder="Website">
+                <input class="f" type="text"  id="pr-ig"    placeholder="Instagram (@...)">
+                <input class="f" type="text"  id="pr-fb"    placeholder="Facebook">
+            </div>
+            <div class="sec">
+                <div class="sec-t">👤 RESPONSÁVEL</div>
+                <input class="f" type="text"     id="pr-rn"   placeholder="* Nome Responsável">
+                <input class="f" type="tel"      id="pr-rt"   placeholder="* Telemóvel">
+                <input class="f" type="email"    id="pr-re"   placeholder="* Email">
+                <input class="f" type="password" id="pr-pass" placeholder="* Senha (mín. 6 car.)">
+                <input class="f" type="password" id="pr-p2"   placeholder="* Confirmar Senha">
+            </div>
+            <div class="sec">
+                <div class="sec-t">🕐 HORÁRIOS</div>
+                <input class="f" type="text" id="h0" placeholder="Segunda (09:00-18:00)">
+                <input class="f" type="text" id="h1" placeholder="Terça">
+                <input class="f" type="text" id="h2" placeholder="Quarta">
+                <input class="f" type="text" id="h3" placeholder="Quinta">
+                <input class="f" type="text" id="h4" placeholder="Sexta">
+                <input class="f" type="text" id="h5" placeholder="Sábado">
+                <input class="f" type="text" id="h6" placeholder="Domingo">
+            </div>
+            <div class="sec">
+                <label class="chk"><input type="checkbox" id="pr-trm">Li e aceito os <span style="color:#0ff;">&nbsp;Termos e Condições&nbsp;</span>do ZAP FLAGS.</label>
+            </div>
+            <button class="b bo" onclick="fazerRegPR()">✅ REGISTAR EMPRESA</button>
+            <button class="b bvol" onclick="ir('p-pr0')">← VOLTAR</button>
+        </div>
+    </div>
+</div>
 
-            <section class="debug-panel">
-                <details>
-                    <summary>Estado do jogador e drone</summary>
-                    <p>Energia: <strong id="energy-display">--</strong>%</p>
-                    <button class="primary" id="load-player">Carregar jogador</button>
-                    <p id="drone-status">O modo drone usa o campo is_virtual_mode do perfil.</p>
-                    <pre id="player-output">Aguardando token JWT em localStorage.token...</pre>
-                    <pre id="move-output">Usa W, A, S, D quando o modo drone estiver ativo.</pre>
-                </details>
-            </section>
-        </section>
-    </main>
+<!-- ======= P-PR-VERIF ======= -->
+<div id="p-pr-verif" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p-pr-reg')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2 style="color:#ff0;border-color:#ff0;">🔢 VERIFICAR EMPRESA</h2>
+        <div id="m-pr-verif" class="m"></div>
+        <p id="pr-vt" style="color:#0aa;font-size:0.88rem;margin:8px 0;"></p>
+        <div class="cod" id="pr-cod">----</div>
+        <input class="f cod-f" type="number" id="pr-cin" placeholder="0000" maxlength="4" oninput="this.value=this.value.slice(0,4)">
+        <div class="tmr">⏱️ <span id="pr-tmr">05:00</span></div>
+        <button class="b bv" onclick="confirmarCodPR()">✅ CONFIRMAR</button>
+        <button class="b bc" onclick="reenviarPR()">🔄 REENVIAR</button>
+    </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const authOutput = document.getElementById('auth-output');
-        const authContainer = document.getElementById('auth-container');
-        const gameContainer = document.getElementById('game-container');
-        const usernameDisplay = document.getElementById('username-display');
-        const energyDisplay = document.getElementById('energy-display');
-        const energyVal = document.getElementById('energy-val');
-        const flagsVal = document.getElementById('flags-val');
-        const premiumFlagsVal = document.getElementById('premium-flags-val');
-        const qrVal = document.getElementById('qr-val');
-        const levelUpOverlay = document.getElementById('levelUpOverlay');
-        const debugFlags95Btn = document.getElementById('debugFlags95Btn');
-        const marketPanel = document.getElementById('market-panel');
-        const walletBtn = document.getElementById('walletBtn');
-        const walletModal = document.getElementById('walletModal');
-        const closeWalletBtn = document.getElementById('closeWalletBtn');
-        const walletBalance = document.getElementById('walletBalance');
-        const backpackBtn = document.getElementById('backpackBtn');
-        const backpackModal = document.getElementById('backpackModal');
-        const closeBackpackBtn = document.getElementById('closeBackpackBtn');
-        const backpackContents = document.getElementById('backpackContents');
-        const tradeBtn = document.getElementById('tradeBtn');
-        const tradeModal = document.getElementById('tradeModal');
-        const closeTradeBtn = document.getElementById('closeTradeBtn');
-        const sendTradeBtn = document.getElementById('sendTradeBtn');
-        const tradeToPlayerId = document.getElementById('tradeToPlayerId');
-        const tradeOfferedItem = document.getElementById('tradeOfferedItem');
-        const tradeRequestedItem = document.getElementById('tradeRequestedItem');
-        const tradeListContents = document.getElementById('tradeListContents');
-        const alertNotificationArea = document.getElementById('alertNotificationArea');
-        const droneStatus = document.getElementById('drone-status');
-        const playerOutput = document.getElementById('player-output');
-        const moveOutput = document.getElementById('move-output');
-        let map = null;
-        let playerMarker = null;
-        let flagMarkers = [];
-        let captureCircle = null;
-        let visionCircle = null;
-        let isMovingDrone = false;
-        let testVirtualModeEnabled = true;
-        let levelOneCelebrated = false;
-        window.currentPlayer = null;
+<!-- ======= P-PR-SUC ======= -->
+<div id="p-pr-suc" class="page">
+    <div class="centro">
+        <div style="font-size:4rem;margin:15px 0;">🎉</div>
+        <h2 style="color:#ff0;border-color:#ff0;">EMPRESA REGISTADA!</h2>
+        <div style="background:#030;border:1px solid #0f0;padding:18px;margin:15px 0;border-radius:8px;text-align:left;">
+            <p id="ps-n" style="color:#ff0;font-size:1rem;margin:4px 0;"></p>
+            <p id="ps-nif" style="color:#0aa;font-size:0.83rem;"></p>
+            <p id="ps-e" style="color:#0aa;font-size:0.83rem;"></p>
+            <p id="ps-l" style="color:#0aa;font-size:0.83rem;"></p>
+        </div>
+        <button class="b bo" onclick="abrirPR(true)">🛒 ESCOLHER PACOTE</button>
+        <button class="b bvol" onclick="ir('p-pr-login')">Entrar mais tarde</button>
+    </div>
+</div>
 
-        const playerAvatarIcon = L.icon({
-            iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-                    <defs>
-                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
-                    <circle cx="32" cy="32" r="25" fill="#0f172a" stroke="#00ff88" stroke-width="4" filter="url(#glow)"/>
-                    <path d="M18 33h28M32 19v28M23 24l18 18M41 24L23 42" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
-                    <circle cx="32" cy="32" r="7" fill="#00ff88"/>
-                    <circle cx="32" cy="32" r="3" fill="#ecfeff"/>
-                </svg>
-            `),
-            iconSize: [46, 46],
-            iconAnchor: [23, 23],
-            popupAnchor: [0, -24]
+<!-- ======= P-PR-PAINEL ======= -->
+<div id="p-pr-painel" class="page" style="padding:0;">
+    <div class="hud hud-pr">
+        <div>
+            <div style="font-weight:bold;font-size:0.8rem;color:#ff0;" id="ph-n">🏪 ---</div>
+            <div style="font-size:0.65rem;color:#0aa;" id="ph-a">---</div>
+        </div>
+        <div style="font-size:0.75rem;">
+            <span style="color:#0ff;">🏴<span id="ph-f">0</span></span>&nbsp;
+            <span style="color:#0f0;">🎫<span id="ph-q">0</span></span>
+        </div>
+        <button class="b bc" style="width:auto;padding:5px 7px;font-size:0.7rem;" onclick="logoutPR()">SAIR</button>
+    </div>
+    <div class="pr-tabs">
+        <div class="pr-tab a" onclick="tabPR('pt0')">📊 Dashboard</div>
+        <div class="pr-tab"   onclick="tabPR('pt1')">🛒 Pacotes</div>
+        <div class="pr-tab"   onclick="tabPR('pt2')">📣 Campanhas</div>
+        <div class="pr-tab"   onclick="tabPR('pt3')">🗺️ Mapa</div>
+        <div class="pr-tab"   onclick="tabPR('pt4')">📸 Scanner</div>
+        <div class="pr-tab"   onclick="tabPR('pt5')">🏢 Empresa</div>
+    </div>
+    <!-- DASHBOARD -->
+    <div id="pt0" class="pr-tc a">
+        <div class="sg">
+            <div class="sb"><div class="sb-n" id="d0">0</div><div class="sb-t">🏴 Flags Emitidas</div></div>
+            <div class="sb"><div class="sb-n" id="d1">0</div><div class="sb-t">🏴 Restantes</div></div>
+            <div class="sb"><div class="sb-n" id="d2">0</div><div class="sb-t">🎫 QRs Gerados</div></div>
+            <div class="sb"><div class="sb-n" id="d3">0</div><div class="sb-t">✅ QRs Usados</div></div>
+        </div>
+        <div class="ic ic-y"><p style="color:#ff0;font-size:0.83rem;margin-bottom:6px;">📦 PACOTE ATIVO</p><div id="d-pack"><p style="color:#555;font-size:0.8rem;">Sem pacote. Vai a "Pacotes".</p></div></div>
+        <button class="b bvol" onclick="logoutPR()" style="margin-top:10px;">← SAIR DA CONTA</button>
+    </div>
+    <!-- PACOTES -->
+    <div id="pt1" class="pr-tc">
+        <p style="color:#0aa;font-size:0.8rem;margin-bottom:8px;text-align:center;">Escolhe o pacote ideal:</p>
+        <div class="packs">
+            <div class="pack" id="pk0" onclick="selPack('BRONZE')"><div>🥉</div><b>BRONZE</b><div style="font-size:1.1rem;font-weight:bold;color:#ff0;">5€</div><div style="font-size:0.7rem;color:#0aa;">50.000 flags</div><div style="font-size:0.7rem;color:#0f0;">📍 5km</div></div>
+            <div class="pack" id="pk1" onclick="selPack('PRATA')"><div>🥈</div><b>PRATA</b><div style="font-size:1.1rem;font-weight:bold;color:#ff0;">15€</div><div style="font-size:0.7rem;color:#0aa;">150.000 flags</div><div style="font-size:0.7rem;color:#0f0;">📍 20km</div></div>
+            <div class="pack" id="pk2" onclick="selPack('OURO')"><div>🥇</div><b>OURO</b><div style="font-size:1.1rem;font-weight:bold;color:#ff0;">50€</div><div style="font-size:0.7rem;color:#0aa;">500.000 flags</div><div style="font-size:0.7rem;color:#0f0;">📍 50km</div></div>
+            <div class="pack" id="pk3" onclick="selPack('PLATINA')"><div>💎</div><b>PLATINA</b><div style="font-size:1.1rem;font-weight:bold;color:#ff0;">100€</div><div style="font-size:0.7rem;color:#0aa;">2.000.000 flags</div><div style="font-size:0.7rem;color:#0f0;">📍 150km</div></div>
+        </div>
+        <div id="det-pack" style="display:none;" class="ic ic-y">
+            <p id="dp-t" style="color:#ff0;margin-bottom:8px;font-weight:bold;"></p>
+            <div class="il"><div class="il-l">Preço</div><div id="dp-p"></div></div>
+            <div class="il"><div class="il-l">Bandeiras</div><div id="dp-f"></div></div>
+            <div class="il"><div class="il-l">Raio</div><div id="dp-r"></div></div>
+            <div class="il"><div class="il-l">Validade</div><div id="dp-v"></div></div>
+            <input class="f" type="text" id="pr-premio" placeholder="🎁 Prémio para jogadores (ex: Café grátis)" style="margin-top:8px;">
+            <button class="b bo" onclick="pedirConf('pack','Confirmar compra do pacote '+packSel+'?')" style="margin-top:8px;">💳 COMPRAR PACOTE</button>
+        </div>
+        <div id="m-pack" class="m"></div>
+    </div>
+    <!-- CAMPANHAS -->
+    <div id="pt2" class="pr-tc"><div id="lista-camp"><p style="color:#555;text-align:center;">Sem campanhas.</p></div></div>
+    <!-- MAPA -->
+    <div id="pt3" class="pr-tc">
+        <p style="color:#0aa;font-size:0.8rem;margin-bottom:6px;text-align:center;">Todos os lojistas ZAP FLAGS:</p>
+        <div id="map-pr-p" class="map-box map-box-pr"></div>
+        <div id="m-mapa-pr" class="m"></div>
+    </div>
+    <!-- SCANNER -->
+    <div id="pt4" class="pr-tc" style="text-align:center;">
+        <p style="color:#0aa;font-size:0.8rem;margin-bottom:12px;">Valida o QR Code do cliente:</p>
+        <button class="b bv" onclick="abrirScanner()">📸 ESCANEAR QR DO CLIENTE</button>
+        <div id="m-scan" class="m" style="margin-top:8px;"></div>
+        <div id="scan-det" style="display:none;" class="ic">
+            <p style="color:#0f0;margin-bottom:8px;">✅ QR VÁLIDO!</p>
+            <div class="il"><div class="il-l">Cliente</div><div id="sc-c"></div></div>
+            <div class="il"><div class="il-l">Prémio</div><div id="sc-p"></div></div>
+            <div class="il"><div class="il-l">Validade</div><div id="sc-v"></div></div>
+            <button class="b bv" onclick="validarQR()" style="margin-top:8px;">✅ ENTREGAR PRÉMIO</button>
+            <button class="b bc" onclick="recusarQR()">❌ RECUSAR</button>
+        </div>
+    </div>
+    <!-- EMPRESA -->
+    <div id="pt5" class="pr-tc"><div id="info-emp"></div><button class="b bvol" onclick="logoutPR()" style="margin-top:8px;">← SAIR</button></div>
+</div>
+
+<!-- ======= P-ADM-LOGIN ======= -->
+<div id="p-adm-login" class="page">
+    <div class="centro">
+        <button class="b bvol" onclick="ir('p0')" style="margin-bottom:15px;">← VOLTAR</button>
+        <h2 style="color:#f00;border-color:#f00;">⚙️ ADMINISTRADOR</h2>
+        <div style="background:#100;border:2px solid #f00;border-radius:8px;padding:12px;margin-bottom:15px;">
+            <p style="color:#f88;font-size:0.82rem;">Acesso restrito. Apenas para administradores.</p>
+        </div>
+        <div id="m-adm-l" class="m"></div>
+        <input class="f" type="password" id="adm-pass" placeholder="🔑 Código de Administrador" style="text-align:center;letter-spacing:5px;">
+        <button class="b badm" onclick="loginAdmin()">⚙️ ENTRAR COMO ADMIN</button>
+        <button class="b bvol" onclick="ir('p0')">← VOLTAR</button>
+    </div>
+</div>
+
+<!-- ======= P-ADMIN ======= -->
+<div id="p-admin" class="page" style="padding:0;">
+    <div class="hud hud-adm">
+        <div>
+            <div style="font-weight:bold;font-size:0.82rem;color:#f00;">⚙️ ADMINISTRADOR</div>
+            <div style="font-size:0.65rem;color:#f88;">Acesso Total</div>
+        </div>
+        <div style="font-size:0.75rem;color:#ff0;">
+            👥<span id="a-tu">0</span>&nbsp;🏪<span id="a-tp">0</span>
+        </div>
+        <button class="b br" style="width:auto;padding:5px 7px;font-size:0.7rem;" onclick="logoutAdm()">SAIR</button>
+    </div>
+    <div class="adm-tabs">
+        <div class="adm-tab a" onclick="tabAdm('at0')">👥 Jogadores</div>
+        <div class="adm-tab"   onclick="tabAdm('at1')">🏪 Lojistas</div>
+        <div class="adm-tab"   onclick="tabAdm('at2')">🎮 Jogar</div>
+        <div class="adm-tab"   onclick="tabAdm('at3')">🏪 Gerir PR</div>
+        <div class="adm-tab"   onclick="tabAdm('at4')">🎉 Bingos</div>
+        <div class="adm-tab"   onclick="tabAdm('at5')">🗺️ Mapa</div>
+        <div class="adm-tab"   onclick="tabAdm('at6')">🔧 Tools</div>
+    </div>
+    <div id="at0" class="adm-tc a"><div id="a-users"></div></div>
+    <div id="at1" class="adm-tc"><div id="a-prs"></div></div>
+    <div id="at2" class="adm-tc">
+        <div class="ic">
+            <p style="color:#f00;font-weight:bold;margin-bottom:10px;">🎮 JOGAR COMO JOGADOR</p>
+            <p style="color:#0aa;font-size:0.82rem;margin-bottom:10px;">Entra como qualquer jogador ou cria uma sessão de admin para jogar:</p>
+            <button class="b bv" onclick="admJogarComoAdmin()">▶ JOGAR COMO ADMIN</button>
+            <p style="color:#555;font-size:0.78rem;margin-top:8px;">Ou escolhe um jogador na aba "Jogadores" e clica em "🎮 Jogar"</p>
+        </div>
+    </div>
+    <div id="at3" class="adm-tc">
+        <div class="ic">
+            <p style="color:#f00;font-weight:bold;margin-bottom:10px;">🏪 GERIR COMO LOJISTA</p>
+            <p style="color:#0aa;font-size:0.82rem;margin-bottom:10px;">Entra como qualquer lojista para gerir campanhas e comprar pacotes:</p>
+            <button class="b bo" onclick="admGerirComoPR()">▶ GERIR COMO ADMIN (PR)</button>
+            <p style="color:#555;font-size:0.78rem;margin-top:8px;">Ou escolhe um lojista na aba "Lojistas" e clica em "🏪 Entrar"</p>
+        </div>
+    </div>
+    <div id="at4" class="adm-tc"><div id="a-bingos"></div></div>
+    <div id="at5" class="adm-tc">
+        <p style="color:#0aa;font-size:0.8rem;margin-bottom:6px;">Todos os lojistas no mapa:</p>
+        <div id="map-adm" style="height:380px;border-radius:8px;border:2px solid #f00;"></div>
+    </div>
+    <div id="at6" class="adm-tc">
+        <div class="ic ic-r">
+            <p style="color:#f00;font-weight:bold;margin-bottom:8px;">⚠️ FERRAMENTAS</p>
+            <button class="b br" onclick="pedirConf('del-users','Apagar TODOS os jogadores?')" style="margin:3px 0;">🗑️ Apagar todos os jogadores</button>
+            <button class="b br" onclick="pedirConf('del-prs','Apagar TODOS os lojistas?')" style="margin:3px 0;">🗑️ Apagar todos os lojistas</button>
+            <button class="b br" onclick="pedirConf('del-bingos','Apagar histórico de bingos?')" style="margin:3px 0;">🗑️ Apagar bingos</button>
+        </div>
+        <button class="b bc" onclick="exportar()" style="margin:3px 0;">📥 Exportar dados JSON</button>
+        <button class="b bc" onclick="criarJTeste()" style="margin:3px 0;">➕ Criar jogador teste</button>
+        <button class="b bc" onclick="criarPRTeste()" style="margin:3px 0;">➕ Criar lojista teste</button>
+        <button class="b bc" onclick="simBingo()" style="margin:3px 0;">🎉 Simular BINGO</button>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const PASS = '321321';
+const PACKS = {
+    BRONZE:  {n:'🥉 BRONZE',  p:'5€',   f:50000,   r:'5km',   rm:5000,   v:'30 dias'},
+    PRATA:   {n:'🥈 PRATA',   p:'15€',  f:150000,  r:'20km',  rm:20000,  v:'60 dias'},
+    OURO:    {n:'🥇 OURO',    p:'50€',  f:500000,  r:'50km',  rm:50000,  v:'90 dias'},
+    PLATINA: {n:'💎 PLATINA', p:'100€', f:2000000, r:'150km', rm:150000, v:'180 dias'},
+};
+
+// ============================================================
+// DB
+// ============================================================
+const DB={
+    u:()=>{try{return JSON.parse(localStorage.getItem('zu')||'[]')}catch(e){return[]}},
+    p:()=>{try{return JSON.parse(localStorage.getItem('zp')||'[]')}catch(e){return[]}},
+    b:()=>{try{return JSON.parse(localStorage.getItem('zb')||'[]')}catch(e){return[]}},
+    su:(l)=>localStorage.setItem('zu',JSON.stringify(l)),
+    sp:(l)=>localStorage.setItem('zp',JSON.stringify(l)),
+    sb:(l)=>localStorage.setItem('zb',JSON.stringify(l)),
+    sess:()=>{try{return JSON.parse(localStorage.getItem('zs')||'null')}catch(e){return null}},
+    sepr:()=>{try{return JSON.parse(localStorage.getItem('zspr')||'null')}catch(e){return null}},
+    setSess:(u)=>localStorage.setItem('zs',JSON.stringify(u)),
+    setSepr:(p)=>localStorage.setItem('zspr',JSON.stringify(p)),
+    delSess:()=>localStorage.removeItem('zs'),
+    delSepr:()=>localStorage.removeItem('zspr'),
+};
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+function ir(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
+    document.querySelectorAll('.m').forEach(x=>{x.className='m';x.innerText='';});
+    if(id==='p-jogo')   setTimeout(initMapaJogo,200);
+    if(id==='p-pr-reg') setTimeout(initMapaPRReg,200);
+    if(id==='p-admin')  carregarAdmin();
+}
+function msg(id,txt,t){const e=document.getElementById(id);if(!e)return;e.className='m '+t;e.innerText=txt;}
+
+// ============================================================
+// VALIDAÇÕES
+// ============================================================
+const vE=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e).toLowerCase());
+const vT=t=>/^[0-9]{9,15}$/.test(String(t).replace(/[\s\-\+]/g,''));
+const vN=n=>/^[0-9]{9}$/.test(String(n).replace(/\s/g,''));
+const vC=c=>/^[0-9]{4}-[0-9]{3}$/.test(String(c));
+
+// ============================================================
+// MODAL CONFIRMAÇÃO
+// ============================================================
+let modalAcao=null;
+function pedirConf(acao,txt){
+    modalAcao=acao;
+    document.getElementById('modal-txt').innerText=txt;
+    document.getElementById('modal-pass').value='';
+    document.getElementById('modal-m').className='m';
+    document.getElementById('ovl').style.display='block';
+    document.getElementById('modal').style.display='block';
+    document.getElementById('modal-pass').focus();
+}
+function fecharModal(){
+    modalAcao=null;
+    document.getElementById('ovl').style.display='none';
+    document.getElementById('modal').style.display='none';
+}
+function confirmarModal(){
+    if(document.getElementById('modal-pass').value!==PASS){
+        msg('modal-m','❌ Código errado! Usa 321321','e');return;
+    }
+    const a=modalAcao;fecharModal();
+    if(a==='pack') comprarConfirmado();
+    else if(a==='del-users'){DB.su([]);carregarAdmin();alert('✅ Jogadores apagados.');}
+    else if(a==='del-prs')  {DB.sp([]);carregarAdmin();alert('✅ Lojistas apagados.');}
+    else if(a==='del-bingos'){DB.sb([]);carregarAdmin();alert('✅ Bingos apagados.');}
+}
+
+// ============================================================
+// MÉTODO (SMS/EMAIL)
+// ============================================================
+let metodo='sms';
+function setMet(m){
+    metodo=m;
+    document.getElementById('met-s').className=m==='sms'  ?'b bv':'b bc';
+    document.getElementById('met-e').className=m==='email'?'b bv':'b bc';
+}
+
+// ============================================================
+// REGISTO JOGADOR
+// ============================================================
+let uPend=null,cod='',tmrInt=null,tmrSeg=300;
+
+function fazerReg(){
+    const nome =document.getElementById('r-nome').value.trim();
+    const email=document.getElementById('r-email').value.trim().toLowerCase();
+    const tel  =document.getElementById('r-tel').value.trim();
+    const pass =document.getElementById('r-pass').value;
+    const p2   =document.getElementById('r-pass2').value;
+    if(!nome)               {msg('m-reg','❌ Insere o teu nome!','e');return;}
+    if(!email||!vE(email))  {msg('m-reg','❌ Email inválido! Ex: nome@gmail.com','e');return;}
+    if(metodo==='sms'&&!vT(tel)){msg('m-reg','❌ Telemóvel inválido!','e');return;}
+    if(!pass||pass.length<6){msg('m-reg','❌ Senha mínimo 6 caracteres!','e');return;}
+    if(pass!==p2)           {msg('m-reg','❌ Senhas não coincidem!','e');return;}
+    if(DB.u().find(u=>u.email===email)){msg('m-reg','❌ Email já registado! Faz login.','e');return;}
+    uPend={nome,email,tel,pass,flags:0,en:100,qrs:[],reg:new Date().toISOString()};
+    cod=Math.floor(1000+Math.random()*9000).toString();
+    console.log('🔑 CÓDIGO:',cod);
+    document.getElementById('v-cod').innerText=cod;
+    document.getElementById('v-txt').innerText=metodo==='sms'?`📱 SMS para: ${tel}`:`📧 Email para: ${email}`;
+    iniciarTmr();ir('p-verif');
+    msg('m-verif',`✅ Código enviado por ${metodo==='sms'?'SMS':'Email'}! Tens 5 minutos.`,'s');
+}
+
+function iniciarTmr(){
+    if(tmrInt) clearInterval(tmrInt);
+    tmrSeg=300;
+    const bc=document.getElementById('v-btn'),br=document.getElementById('v-reen');
+    if(bc) bc.disabled=false;if(br) br.disabled=true;
+    tmrInt=setInterval(()=>{
+        tmrSeg--;
+        const m=Math.floor(tmrSeg/60).toString().padStart(2,'0');
+        const s=(tmrSeg%60).toString().padStart(2,'0');
+        const el=document.getElementById('v-tmr');if(el) el.innerText=`${m}:${s}`;
+        if(tmrSeg<=60&&br) br.disabled=false;
+        if(tmrSeg<=0){clearInterval(tmrInt);if(bc)bc.disabled=true;document.getElementById('v-cod').innerText='EXPIROU';msg('m-verif','⏰ Expirado! Clica Reenviar.','a');}
+    },1000);
+}
+function reenviar(){
+    cod=Math.floor(1000+Math.random()*9000).toString();
+    document.getElementById('v-cod').innerText=cod;
+    document.getElementById('v-in').value='';
+    document.getElementById('v-btn').disabled=false;
+    console.log('🔑 NOVO:',cod);iniciarTmr();msg('m-verif','✅ Novo código!','s');
+}
+function confirmarCod(){
+    const ins=document.getElementById('v-in').value.trim();
+    if(!ins||ins.length!==4){msg('m-verif','❌ Insere os 4 dígitos!','e');return;}
+    if(ins!==cod){msg('m-verif','❌ Código errado!','e');document.getElementById('v-in').value='';return;}
+    clearInterval(tmrInt);
+    const us=DB.u();us.push(uPend);DB.su(us);
+    console.log('✅ Jogador guardado:',uPend.email);
+    document.getElementById('suc-n').innerText='👤 '+uPend.nome;
+    document.getElementById('suc-e').innerText='📧 '+uPend.email;
+    ir('p-suc');
+}
+function irLoginSuc(){
+    const em=uPend?uPend.email:'';uPend=null;ir('p-login');
+    if(em){document.getElementById('l-email').value=em;msg('m-login','✅ Conta criada! Insere a senha.','s');}
+}
+
+// ============================================================
+// LOGIN JOGADOR
+// ============================================================
+function fazerLogin(){
+    const email=document.getElementById('l-email').value.trim().toLowerCase();
+    const pass =document.getElementById('l-pass').value;
+    if(!email||!vE(email)){msg('m-login','❌ Email inválido!','e');return;}
+    if(!pass)             {msg('m-login','❌ Insere a senha!','e');return;}
+    if(pass===PASS){msg('m-login','❌ Código de Admin. Usa o botão ⚙️ ADMINISTRADOR.','a');return;}
+    const us=DB.u();
+    const eEx=us.find(u=>u.email===email);
+    if(!eEx){msg('m-login','❌ Email não encontrado! Regista-te primeiro.','e');return;}
+    const user=us.find(u=>u.email===email&&u.pass===pass);
+    if(!user){msg('m-login','❌ Senha incorreta!','e');return;}
+    DB.setSess(user);entrarJogo(user);
+}
+
+// ============================================================
+// MAPA JOGO + GPS + BANDEIRAS
+// ============================================================
+let mapaJ=null,marcJ=null,lgFlags=null,jogAtual=null,spawnTmr=null;
+let posAtual={lat:39.5,lng:-8.0};
+
+function initMapaJogo(){
+    if(mapaJ){mapaJ.invalidateSize();return;}
+    mapaJ=L.map('map-jogo',{zoomControl:true}).setView([39.5,-8.0],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapaJ);
+    lgFlags=L.layerGroup().addTo(mapaJ);
+    mostrarLojistasMapa();
+    if(navigator.geolocation){
+        navigator.geolocation.watchPosition(pos=>{
+            posAtual={lat:pos.coords.latitude,lng:pos.coords.longitude};
+            document.getElementById('gps-box').innerText=`✅ ${posAtual.lat.toFixed(4)}, ${posAtual.lng.toFixed(4)}`;
+            const ic=L.divIcon({className:'',html:'<div style="background:#0f0;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px #0f0;"></div>',iconSize:[18,18],iconAnchor:[9,9]});
+            if(!marcJ){marcJ=L.marker([posAtual.lat,posAtual.lng],{icon:ic}).addTo(mapaJ).bindPopup(`👤 ${jogAtual?.nome}`);mapaJ.setView([posAtual.lat,posAtual.lng],16);}
+            else marcJ.setLatLng([posAtual.lat,posAtual.lng]);
+            spawnFlags();
+        },err=>{
+            document.getElementById('gps-box').innerText='❌ GPS indisponível';
+            spawnFlags();
+        },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+    } else {
+        document.getElementById('gps-box').innerText='❌ GPS não suportado';
+        spawnFlags();
+    }
+}
+
+function mostrarLojistasMapa(){
+    if(!mapaJ) return;
+    DB.p().forEach(pr=>{
+        if(!pr.lat||!pr.lng) return;
+        const camp=pr.campanhas&&pr.campanhas.find(c=>c.ativa);
+        if(!camp) return;
+        const ic=L.divIcon({className:'',html:'<div style="background:#ff0;color:#000;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;border:2px solid #000;">🏪</div>',iconSize:[26,26],iconAnchor:[13,13]});
+        L.marker([pr.lat,pr.lng],{icon:ic}).addTo(mapaJ).bindPopup(`<b>${pr.nomeEmpresa}</b><br>${pr.atividade}<br>🎁 ${camp.premio}`);
+        L.circle([pr.lat,pr.lng],{radius:camp.raio||5000,color:'#ff0',fillColor:'#ff0',fillOpacity:0.05,weight:1,dashArray:'5,5'}).addTo(mapaJ);
+    });
+}
+
+function calcBandeirasZAP(){
+    // Bandeiras de energia: 1 por cada 5 jogadores registados
+    // Aparecem a cada 100m (simulado com distância mínima no spawn)
+    const numJogadores=DB.u().length;
+    const maxZAP=Math.max(1,Math.floor(numJogadores/5));
+    return Math.min(maxZAP,20); // máximo 20 bandeiras ZAP no mapa
+}
+
+function spawnFlags(){
+    if(!lgFlags||!mapaJ) return;
+    lgFlags.clearLayers();
+    const lat=posAtual.lat, lng=posAtual.lng;
+
+    // === BANDEIRAS DE ENERGIA (ZAP) ===
+    // Regra: apenas 1 por cada 5 jogadores, mínimo a 100m de distância
+    const numZAP=calcBandeirasZAP();
+    const posZAP=[];
+    let tentativas=0;
+    while(posZAP.length<numZAP && tentativas<100){
+        tentativas++;
+        const ang=Math.random()*2*Math.PI;
+        const dist=100+Math.random()*200; // mínimo 100m
+        const dLat=(dist/111000)*Math.cos(ang);
+        const dLng=(dist/(111000*Math.cos(lat*Math.PI/180)))*Math.sin(ang);
+        const fLat=lat+dLat, fLng=lng+dLng;
+        // Verificar que está a pelo menos 100m das outras
+        const longeOsuficiente=posZAP.every(p=>{
+            const dx=(fLat-p[0])*111000;
+            const dy=(fLng-p[1])*111000*Math.cos(lat*Math.PI/180);
+            return Math.sqrt(dx*dx+dy*dy)>=100;
         });
-
-        const flagIcon = L.divIcon({
-            className: 'zap-flag-marker',
-            html: '<div style="font-size:30px;filter:drop-shadow(0 0 8px #00E676);">🚩</div>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 28],
-            popupAnchor: [0, -28]
-        });
-
-        function getToken() {
-            return localStorage.getItem('token') || '';
+        if(longeOsuficiente){
+            posZAP.push([fLat,fLng]);
+            const ic=L.divIcon({className:'',html:'<div style="background:#0ff;color:#000;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid #fff;cursor:pointer;">⚡</div>',iconSize:[28,28],iconAnchor:[14,14]});
+            L.marker([fLat,fLng],{icon:ic}).addTo(lgFlags).bindPopup('<b>⚡ Bandeira ZAP</b><br>+10% Energia').on('click',()=>apanharFlag('ZAP'));
         }
+    }
 
-        function headers() {
-            return {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${getToken()}`
-            };
+    // === BANDEIRAS DOS LOJISTAS (PR) ===
+    // Apenas aparecem se o lojista tiver pacote ativo
+    const prs=DB.p().filter(pr=>pr.lat&&pr.lng&&pr.campanhas&&pr.campanhas.some(c=>c.ativa));
+    prs.forEach(pr=>{
+        const camp=pr.campanhas.find(c=>c.ativa);
+        if(!camp||camp.flagsRest<=0) return;
+        // Calcular distância ao lojista
+        const dx=(lat-pr.lat)*111000;
+        const dy=(lng-pr.lng)*111000*Math.cos(lat*Math.PI/180);
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist>camp.raio) return; // fora do raio do pacote
+        // Spawnar 1-3 bandeiras dentro do raio da loja
+        const nFlags=Math.min(3,Math.ceil(camp.flagsRest/10000));
+        for(let i=0;i<nFlags;i++){
+            const ang=Math.random()*2*Math.PI;
+            const d=Math.min(dist*0.8,camp.raio*0.5)+Math.random()*Math.min(100,camp.raio*0.2);
+            const fLat=parseFloat(pr.lat)+(d/111000)*Math.cos(ang);
+            const fLng=parseFloat(pr.lng)+(d/(111000*Math.cos(parseFloat(pr.lat)*Math.PI/180)))*Math.sin(ang);
+            const ic=L.divIcon({className:'',html:`<div style="background:#f00;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;border:2px solid #ff0;cursor:pointer;">🏴</div>`,iconSize:[28,28],iconAnchor:[14,14]});
+            L.marker([fLat,fLng],{icon:ic}).addTo(lgFlags).bindPopup(`<b>🏴 ${pr.nomeEmpresa}</b><br>🎁 ${camp.premio}<br>+1 ponto → 10 = QR!`).on('click',()=>apanharFlag('PR',pr));
         }
+    });
 
-        async function initializePlayerExperience() {
-            const player = await loadPlayer();
-            authContainer.style.display = 'none';
-            gameContainer.style.display = 'block';
-            initMap(player);
-            await loadMapFlags();
-            await enableVirtualModeForTesting(player);
-            configureKeyboardControls(player);
-            await loadSponsoredPanels();
-            window.focus();
+    if(spawnTmr) clearTimeout(spawnTmr);
+    spawnTmr=setTimeout(spawnFlags,30000);
+}
+
+function apanharFlag(tipo,pr=null){
+    if(!jogAtual) return;
+    if(jogAtual.en<=0){alert('⚡ Sem energia! Apanha bandeiras ZAP.');return;}
+    jogAtual.en=Math.max(0,jogAtual.en-1);
+    if(tipo==='ZAP'){
+        jogAtual.en=Math.min(100,jogAtual.en+10);
+        atualizarHUD();
+    } else if(tipo==='PR'&&pr){
+        jogAtual.flags=(jogAtual.flags||0)+1;
+        // Reduzir flags do lojista
+        const prs=DB.p();
+        const idx=prs.findIndex(p=>p.email===pr.email);
+        if(idx>=0){
+            const ci=prs[idx].campanhas.findIndex(c=>c.ativa);
+            if(ci>=0) prs[idx].campanhas[ci].flagsRest=Math.max(0,(prs[idx].campanhas[ci].flagsRest||0)-1);
+            DB.sp(prs);
         }
-
-        function buildAuthPayload(mode) {
-            const identifier = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const passwordConfirm = document.getElementById('auth-password-confirm').value;
-            const typedName = document.getElementById('auth-name').value.trim();
-            const displayName = typedName || identifier;
-            const email = identifier;
-
-            if (!identifier && !displayName) {
-                throw new Error('Escreve o nome do jogador ou o email.');
-            }
-
-            if (!password) {
-                throw new Error('Escreve a senha.');
-            }
-
-            if (mode === 'register') {
-                if (!displayName) {
-                    throw new Error('Escreve o nome do jogador.');
-                }
-
-                if (!identifier || !identifier.includes('@')) {
-                    throw new Error('Escreve um e-mail válido.');
-                }
-
-                if (!passwordConfirm) {
-                    throw new Error('Repete a senha no campo Contra-senha.');
-                }
-
-                if (password !== passwordConfirm) {
-                    throw new Error('A senha e a contra-senha não são iguais.');
-                }
-            }
-
-            return mode === 'register'
-                ? { email, password, display_name: displayName, account_type: 'player' }
-                : { email: identifier, password };
+        if(jogAtual.flags%10===0){
+            jogAtual.qrs=jogAtual.qrs||[];
+            jogAtual.qrs.push({id:Date.now(),pr:pr.email,premio:pr.campanhas?.find(c=>c.ativa)?.premio||'Prémio',data:new Date().toISOString()});
+            dispararBingo(jogAtual.nome);
         }
+        atualizarHUD();
+    }
+    // Guardar progresso
+    const us=DB.u();const idx=us.findIndex(u=>u.email===jogAtual.email);
+    if(idx>=0) us[idx]=jogAtual;DB.su(us);DB.setSess(jogAtual);
+    spawnFlags();
+}
 
-        async function authenticate(mode, event) {
-            if (event) event.preventDefault();
+function atualizarHUD(){
+    document.getElementById('j-flags').innerText=jogAtual.flags||0;
+    document.getElementById('j-en').innerText=jogAtual.en||100;
+    document.getElementById('j-qrs').innerText=(jogAtual.qrs||[]).length;
+}
 
-            const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-            let payload;
-
-            try {
-                payload = buildAuthPayload(mode);
-            } catch (error) {
-                authOutput.textContent = error.message;
-                return;
-            }
-
-            let response;
-            let result;
-
-            try {
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                result = await response.json();
-            } catch (error) {
-                authOutput.textContent = 'Não foi possível contactar o servidor. Confirma se o start.bat está ativo.';
-                return;
-            }
-
-            if (!response.ok || !result.success || !result.token) {
-                authOutput.textContent = result.error || 'Não foi possível autenticar. Confirma os dados e tenta novamente.';
-                return;
-            }
-
-            localStorage.setItem('token', result.token);
-
-            if (result.redirect_url && result.redirect_url !== '/index.html') {
-                window.location.href = result.redirect_url;
-                return;
-            }
-
-            authOutput.textContent = mode === 'register'
-                ? 'Conta criada com sucesso. A carregar o mapa...'
-                : 'Entrada concluída. A carregar o mapa...';
-            await initializePlayerExperience();
+// ============================================================
+// BINGO
+// ============================================================
+function dispararBingo(nome){
+    const bs=DB.b();bs.unshift({nome,data:new Date().toISOString()});
+    if(bs.length>100) bs.pop();DB.sb(bs);
+    document.getElementById('bingo-nome').innerText=`🎊 ${nome}`;
+    document.getElementById('bingo-pop').style.display='block';
+    adicionarTick(`🎉 BINGO! <span>${nome}</span> ganhou 10 bandeiras e um QR Code! 🏆`);
+    setTimeout(fecharBingo,6000);
+}
+function fecharBingo(){document.getElementById('bingo-pop').style.display='none';}
+function adicionarTick(html){
+    const t=document.getElementById('ticker');
+    const s=document.createElement('span');s.className='tick';s.innerHTML=html;t.appendChild(s);
+    // Duplicar para loop infinito
+    const s2=document.createElement('span');s2.className='tick';s2.innerHTML=html;t.appendChild(s2);
+}
+function initTicker(){
+    const t=document.getElementById('ticker');t.innerHTML='';
+    adicionarTick('🏴 ZAP FLAGS - Caça ao Tesouro! Boa sorte a todos! 🎯');
+    adicionarTick('⚡ Bandeiras ZAP dão energia - 1 por cada 5 jogadores!');
+    adicionarTick('🎫 10 bandeiras de loja = 1 QR Code com prémio!');
+    DB.b().slice(0,3).forEach(b=>adicionarTick(`🎉 BINGO! <span>${b.nome}</span> ganhou! 🏆`));
+    setInterval(()=>{
+        const us=DB.u().filter(u=>u.email!==jogAtual?.email);
+        if(us.length>0&&Math.random()<0.1){
+            const r=us[Math.floor(Math.random()*us.length)];
+            adicionarTick(`🏴 <span>${r.nome}</span> está a jogar ZAP FLAGS!`);
         }
-
-        async function loadPlayer() {
-            const response = await fetch('/api/player/me', { headers: headers() });
-            const player = await response.json();
-
-            if (!response.ok || player.error) {
-                playerOutput.textContent = player.error || 'Erro ao carregar jogador.';
-                throw new Error(player.error || 'Erro ao carregar jogador.');
-            }
-
-            const currentPlayer = setCurrentPlayer(player);
-            playerOutput.textContent = `Perfil carregado: ${getPlayerName(currentPlayer)} | Energia: ${Number(currentPlayer.current_energy || 0).toFixed(1)}%`;
-            updatePlayerIdentity(currentPlayer);
-            return currentPlayer;
-        }
-
-        function getPlayerName(player) {
-            return String(player.username || player.display_name || player.name || player.email || `#${player.id || ''}`).trim();
-        }
-
-        function updatePlayerIdentity(player) {
-            const playerName = getPlayerName(player);
-            usernameDisplay.innerText = playerName || 'sem nome';
-            const energy = Number(player.current_energy || 0).toFixed(1);
-            energyDisplay.innerText = energy;
-            energyVal.innerText = energy;
-            flagsVal.innerText = Number(player.flags_caught_total || 0);
-            premiumFlagsVal.innerText = Number(player.premium_flags_total || player.premium_flags_caught_total || 0);
-            qrVal.innerText = Number(player.qr_codes_total || player.qr_total || 0);
-            droneStatus.innerText = player.is_virtual_mode || testVirtualModeEnabled
-                ? 'Modo drone ativo. Usa W, A, S, D para mover.'
-                : 'Modo drone inativo. Ativa o modo virtual para usar W, A, S, D.';
-        }
-
-        function getPlayerCoordinates(player) {
-            const latitude = Number(player.virtual_latitude ?? player.last_latitude ?? 38.7223);
-            const longitude = Number(player.virtual_longitude ?? player.last_longitude ?? -9.1393);
-            return { latitude, longitude };
-        }
-
-        function calculateVisionSkill(flagsCaughtTotal) {
-            const total = Math.max(0, Number(flagsCaughtTotal || 0));
-            let level = 0;
-            let requirement = 100;
-
-            while (level < 15 && total >= requirement) {
-                level += 1;
-                requirement *= 2;
-            }
-
-            return level;
-        }
-
-        function getVisionRadius(player) {
-            const serverRadius = Number(player?.vision_radius);
-            if (Number.isFinite(serverRadius) && serverRadius > 0) {
-                return Math.min(50, Math.max(5, serverRadius));
-            }
-
-            const flagsCount = Number(player?.flags_caught_total || 0);
-            const skill = calculateVisionSkill(flagsCount);
-            return Math.min(50, 5 + (skill * 3));
-        }
-
-        function playLevelUpSound() {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContextClass) {
-                return;
-            }
-
-            const audioContext = new AudioContextClass();
-            const notes = [523.25, 659.25, 783.99, 1046.5];
-            notes.forEach((frequency, index) => {
-                const oscillator = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.11);
-                gain.gain.setValueAtTime(0.0001, audioContext.currentTime + index * 0.11);
-                gain.gain.exponentialRampToValueAtTime(0.14, audioContext.currentTime + index * 0.11 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + index * 0.11 + 0.18);
-                oscillator.connect(gain);
-                gain.connect(audioContext.destination);
-                oscillator.start(audioContext.currentTime + index * 0.11);
-                oscillator.stop(audioContext.currentTime + index * 0.11 + 0.2);
-            });
-
-            setTimeout(() => audioContext.close(), 900);
-        }
-
-        function launchPartyBursts() {
-            const icons = ['🎉', '🎆', '✨', '🎊'];
-            for (let index = 0; index < 36; index += 1) {
-                const burst = document.createElement('div');
-                burst.className = 'party-burst';
-                burst.textContent = icons[index % icons.length];
-                burst.style.left = `${10 + Math.random() * 80}vw`;
-                burst.style.top = `${55 + Math.random() * 35}vh`;
-                burst.style.animationDelay = `${Math.random() * 0.5}s`;
-                document.body.appendChild(burst);
-                setTimeout(() => burst.remove(), 3200);
-            }
-        }
-
-        function showSkillUpCelebration() {
-            levelUpOverlay.classList.add('active');
-            launchPartyBursts();
-            playLevelUpSound();
-            setTimeout(() => levelUpOverlay.classList.remove('active'), 3000);
-        }
-
-        async function setDebugFlags95() {
-            try {
-                const response = await fetch('/api/debug/player/flags-95', {
-                    method: 'POST',
-                    headers: headers()
-                });
-                const result = await response.json();
-
-                if (!response.ok || result.error) {
-                    moveOutput.textContent = JSON.stringify(result, null, 2);
-                    return;
-                }
-
-                const player = setCurrentPlayer(result.player);
-                const { latitude, longitude } = getPlayerCoordinates(player);
-                updatePlayerIdentity(player);
-                updatePlayerMapLayers(latitude, longitude);
-                const flagsResponse = await fetch('/api/debug/flags/near-player', {
-                    method: 'POST',
-                    headers: headers()
-                });
-                const flagsResult = await flagsResponse.json();
-                map.setView([latitude, longitude], 18);
-                moveOutput.textContent = JSON.stringify(result, null, 2);
-                setTimeout(async () => {
-                    map.invalidateSize();
-                    updatePlayerMapLayers(latitude, longitude, window.currentPlayer);
-                    await loadMapFlags();
-                    (flagsResult.flags || []).forEach((flag) => {
-                        const flagLatitude = Number(flag.latitude);
-                        const flagLongitude = Number(flag.longitude);
-                        if (!Number.isFinite(flagLatitude) || !Number.isFinite(flagLongitude)) {
-                            return;
-                        }
-                        const markerCircle = L.circle([flagLatitude, flagLongitude], {
-                            radius: 1,
-                            color: 'orange',
-                            fillColor: 'yellow',
-                            fillOpacity: 1,
-                            weight: 3
-                        }).addTo(map);
-                        flagMarkers.push(markerCircle);
-                    });
-                    map.setView([latitude, longitude], 18);
-                    console.log('-> Círculos desenhados com sucesso no mapa físico.');
-                }, 500);
-            } catch (error) {
-                moveOutput.textContent = 'Nao foi possivel ativar o teste das 95 bandeiras.';
-            }
-        }
-
-        function initMap(player) {
-            const { latitude, longitude } = getPlayerCoordinates(player);
-
-            if (!map) {
-                map = L.map('map').setView([latitude, longitude], 17);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-            } else {
-                map.setView([latitude, longitude], 17);
-                setTimeout(() => map.invalidateSize(), 0);
-            }
-
-            updatePlayerMapLayers(latitude, longitude, player);
-
-            playerMarker.bindPopup(`Jogador: ${getPlayerName(player) || 'sem nome'}`).openPopup();
-            setTimeout(() => {
-                map.invalidateSize();
-                window.focus();
-            }, 0);
-        }
-
-        function updatePlayerMapLayers(latitude, longitude, player = window.currentPlayer) {
-            const position = [latitude, longitude];
-            const visionRadius = getVisionRadius(player);
-            if (map) {
-                map.setView(position, 18);
-                setTimeout(() => map.invalidateSize(), 0);
-            }
-
-            if (playerMarker) {
-                playerMarker.setLatLng(position);
-            } else {
-                playerMarker = L.marker(position, { icon: playerAvatarIcon, zIndexOffset: 1000 }).addTo(map);
-            }
-
-            if (captureCircle) {
-                captureCircle.setLatLng(position);
-                captureCircle.setRadius(2.5);
-                captureCircle.setStyle({
-                    color: '#ff2d2d',
-                    weight: 4,
-                    opacity: 1,
-                    fillColor: '#00ff88',
-                    fillOpacity: 0.2,
-                    dashArray: '4 4'
-                });
-            } else {
-                captureCircle = L.circle(position, {
-                    radius: 2.5,
-                    color: '#ff2d2d',
-                    weight: 4,
-                    opacity: 1,
-                    fillColor: '#00ff88',
-                    fillOpacity: 0.2,
-                    dashArray: '4 4'
-                }).addTo(map);
-            }
-
-            if (visionCircle) {
-                visionCircle.setLatLng(position);
-                visionCircle.setRadius(visionRadius);
-                visionCircle.setStyle({
-                    color: '#008cff',
-                    weight: 5,
-                    opacity: 1,
-                    fillColor: '#38bdf8',
-                    fillOpacity: 0.14
-                });
-            } else {
-                visionCircle = L.circle(position, {
-                    radius: visionRadius,
-                    color: '#008cff',
-                    weight: 5,
-                    opacity: 1,
-                    fillColor: '#38bdf8',
-                    fillOpacity: 0.14
-                }).addTo(map);
-            }
-        }
-
-        function setCurrentPlayer(player) {
-            window.currentPlayer = {
-                ...player,
-                username: player.username || player.display_name || player.name || player.email
-            };
-            return window.currentPlayer;
-        }
-
-        async function loadMapFlags() {
-            if (!map) {
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/flags', { headers: headers() });
-                const result = await response.json();
-
-                if (!response.ok || result.error) {
-                    moveOutput.textContent = result.error || 'Erro ao carregar bandeiras.';
-                    return;
-                }
-
-                flagMarkers.forEach((marker) => marker.remove());
-                flagMarkers = [];
-
-                const flags = Array.isArray(result.flags) ? result.flags : result;
-                const playerPosition = getPlayerCoordinates(window.currentPlayer || {});
-                const visionRadius = getVisionRadius(window.currentPlayer);
-                flags.forEach((flag) => {
-                    const latitude = Number(flag.latitude);
-                    const longitude = Number(flag.longitude);
-
-                    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-                        return;
-                    }
-
-                    const distance = map.distance([playerPosition.latitude, playerPosition.longitude], [latitude, longitude]);
-                    if (distance > visionRadius) {
-                        return;
-                    }
-
-                    const marker = L.marker([latitude, longitude], { icon: flagIcon, zIndexOffset: 500 }).addTo(map);
-                    marker.bindPopup(`
-                        <strong>${flag.type || 'Bandeira'}</strong><br>
-                        ${flag.company_name || 'ZAP Flag'}<br>
-                        <small>${Number(flag.coin_value || 0)} ZAPs | ${Number(flag.energy_value || 0)} energia</small>
-                    `);
-                    flagMarkers.push(marker);
-                });
-            } catch (error) {
-                moveOutput.textContent = 'Bandeiras indisponiveis no mapa.';
-            }
-        }
-
-        function configureKeyboardControls(player) {
-            const active = Boolean(player && getPlayerName(player) && (player.is_virtual_mode || testVirtualModeEnabled));
-            droneStatus.innerText = active
-                ? 'Controlos ativos: W, A, S, D.'
-                : 'Controlos inativos: jogador sem nome ou modo drone desligado.';
-        }
-
-        async function enableVirtualModeForTesting(player) {
-            if (!testVirtualModeEnabled || !player || player.is_virtual_mode) {
-                return;
-            }
-
-            const { latitude, longitude } = getPlayerCoordinates(player);
-            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-                return;
-            }
-
-            window.currentPlayer = {
-                ...window.currentPlayer,
-                is_virtual_mode: true,
-                virtual_latitude: latitude,
-                virtual_longitude: longitude
-            };
-
-            try {
-                const response = await fetch('/api/player/me/location', {
-                    method: 'PUT',
-                    headers: headers(),
-                    body: JSON.stringify({ latitude, longitude, is_virtual: true })
-                });
-                const result = await response.json();
-                if (response.ok && !result.error) {
-                    setCurrentPlayer({ ...result.player, is_virtual_mode: true });
-                    playerOutput.textContent = `Perfil carregado: ${getPlayerName(window.currentPlayer)} | Energia: ${Number(window.currentPlayer.current_energy || 0).toFixed(1)}%`;
-                }
-            } catch (error) {
-                moveOutput.textContent = 'Modo virtual de teste ativo no frontend. Se o servidor rejeitar o movimento, verifica is_virtual_mode no perfil.';
-            }
-        }
-
-        async function moveDrone(direction) {
-            if (!window.currentPlayer || isMovingDrone) {
-                return;
-            }
-
-            if (!window.currentPlayer.is_virtual_mode && !testVirtualModeEnabled) {
-                droneStatus.innerText = 'Modo drone inativo no perfil. Movimento WASD cancelado.';
-                return;
-            }
-
-            isMovingDrone = true;
-            droneStatus.innerText = `A mover drone para ${direction.toUpperCase()}...`;
-
-            try {
-                const response = await fetch('/api/player/me/virtual-move', {
-                    method: 'POST',
-                    headers: headers(),
-                    body: JSON.stringify({ direction })
-                });
-                const result = await response.json();
-
-                if (!response.ok || result.error) {
-                    moveOutput.textContent = JSON.stringify(result, null, 2);
-                    droneStatus.innerText = result.error || 'Erro ao mover drone.';
-                    return;
-                }
-
-                const movedPlayer = setCurrentPlayer(result.player);
-                const latitude = Number(result.latitude ?? result.new_position?.latitude ?? movedPlayer.virtual_latitude);
-                const longitude = Number(result.longitude ?? result.new_position?.longitude ?? movedPlayer.virtual_longitude);
-                if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-                    updatePlayerMapLayers(latitude, longitude);
-                    map.setView([latitude, longitude], map.getZoom());
-                    await loadMapFlags();
-                }
-                updatePlayerIdentity(window.currentPlayer);
-                moveOutput.textContent = JSON.stringify(result, null, 2);
-                configureKeyboardControls(window.currentPlayer);
-                if (Array.isArray(result.flags_captured) && result.flags_captured.length > 0) {
-                    droneStatus.innerText = `${result.flags_captured.length} bandeira(s) capturada(s)!`;
-                    const previousFlags = Number(window.currentPlayer.flags_caught_total || 0) - result.flags_captured.length;
-                    const currentFlags = Number(window.currentPlayer.flags_caught_total || 0);
-                    if (!levelOneCelebrated && previousFlags < 100 && currentFlags >= 100) {
-                        levelOneCelebrated = true;
-                        showSkillUpCelebration();
-                    }
-                    await loadSponsoredPanels();
-                }
-            } finally {
-                isMovingDrone = false;
-            }
-        }
-
-        function renderBackpackItems(items) {
-            if (!Array.isArray(items) || items.length === 0) {
-                backpackContents.innerHTML = '<p style="color:#666;text-align:center;padding:10px;">A tua mochila está vazia.</p>';
-                return;
-            }
-
-            backpackContents.innerHTML = items.map((item) => {
-                const name = item.name || item.item_name || item.type || 'Item';
-                const description = item.description || item.rarity || item.item_type || 'Sem descrição.';
-                return `<div style="padding:8px; background:#202020; border-radius:6px; border-left:3px solid #00ccff;">
-                    <strong style="color:#fff;">${name}</strong><br>
-                    <span style="font-size:11px;color:#aaa;">${description}</span>
-                </div>`;
-            }).join('');
-        }
-
-        async function openWallet() {
-            walletModal.style.display = 'block';
-            backpackModal.style.display = 'none';
-            tradeModal.style.display = 'none';
-            walletBalance.innerText = '1500 ZAPs';
-        }
-
-        async function openBackpack() {
-            backpackModal.style.display = 'block';
-            walletModal.style.display = 'none';
-            tradeModal.style.display = 'none';
-            backpackContents.innerHTML = '<p style="color:#aaa;text-align:center;">A abrir...</p>';
-
-            try {
-                const response = await fetch('/api/player/me/backpack', { headers: headers() });
-                const result = await response.json();
-                if (!response.ok || result.error) {
-                    backpackContents.innerHTML = `<p style="color:#ff4444;text-align:center;">${result.error || 'Erro ao carregar a mochila.'}</p>`;
-                    return;
-                }
-
-                renderBackpackItems(result.items || result.backpack || result);
-            } catch (error) {
-                backpackContents.innerHTML = '<p style="color:#ff4444;text-align:center;">Erro ao ler itens.</p>';
-            }
-        }
-
-        function closeWallet() {
-            walletModal.style.display = 'none';
-        }
-
-        function closeBackpack() {
-            backpackModal.style.display = 'none';
-        }
-
-        function showNotification(message, type = 'info') {
-            const color = type === 'error' ? '#ff4444' : '#00ccff';
-            const notification = document.createElement('div');
-            notification.style.cssText = `background:#141414;border:1px solid ${color};color:#fff;padding:10px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.45);font-size:12px;`;
-            notification.textContent = message;
-            alertNotificationArea.appendChild(notification);
-            setTimeout(() => notification.remove(), 3500);
-        }
-
-        function renderTradeList(trades) {
-            if (!Array.isArray(trades) || trades.length === 0) {
-                tradeListContents.innerHTML = '<p style="color:#666;text-align:center;padding:10px;">Sem propostas de troca.</p>';
-                return;
-            }
-
-            tradeListContents.innerHTML = trades.map((trade) => {
-                const fromName = trade.from_player_name || `Jogador ${trade.from_player_id}`;
-                const toName = trade.to_player_name || `Jogador ${trade.to_player_id}`;
-                return `<div style="padding:8px; background:#202020; border-radius:6px; border-left:3px solid #00ccff;">
-                    <strong>${fromName} → ${toName}</strong><br>
-                    <span style="color:#aaa;">Oferece: ${trade.offered_item}</span><br>
-                    <span style="color:#aaa;">Pede: ${trade.requested_item}</span><br>
-                    <small style="color:#00ccff;">Estado: ${trade.status || 'pending'}</small>
-                </div>`;
-            }).join('');
-        }
-
-        async function loadTrades() {
-            tradeListContents.innerHTML = '<p style="color:#aaa;text-align:center;">A carregar propostas...</p>';
-
-            try {
-                const response = await fetch('/api/trades', { headers: headers() });
-                const result = await response.json();
-                if (!response.ok || result.error) {
-                    tradeListContents.innerHTML = `<p style="color:#ff4444;text-align:center;">${result.error || 'Erro ao carregar propostas.'}</p>`;
-                    return;
-                }
-
-                renderTradeList(result);
-            } catch (error) {
-                tradeListContents.innerHTML = '<p style="color:#ff4444;text-align:center;">Erro ao ler propostas.</p>';
-            }
-        }
-
-        async function openTradeModal() {
-            tradeModal.style.display = 'block';
-            walletModal.style.display = 'none';
-            backpackModal.style.display = 'none';
-            await loadTrades();
-        }
-
-        function closeTradeModal() {
-            tradeModal.style.display = 'none';
-        }
-
-        async function sendTradeOffer() {
-            const toPlayerId = Number(tradeToPlayerId.value);
-            const offeredItem = tradeOfferedItem.value.trim();
-            const requestedItem = tradeRequestedItem.value.trim();
-
-            if (!toPlayerId || !offeredItem || !requestedItem) {
-                showNotification('Preenche o ID, o item oferecido e o item pedido.', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/trades', {
-                    method: 'POST',
-                    headers: headers(),
-                    body: JSON.stringify({
-                        to_player_id: toPlayerId,
-                        offered_item: offeredItem,
-                        requested_item: requestedItem
-                    })
-                });
-                const result = await response.json();
-                if (!response.ok || result.error) {
-                    showNotification(result.error || 'Erro ao enviar proposta.', 'error');
-                    return;
-                }
-
-                tradeOfferedItem.value = '';
-                tradeRequestedItem.value = '';
-                showNotification('Proposta de troca enviada.');
-                await loadTrades();
-            } catch (error) {
-                showNotification('Erro ao enviar proposta de troca.', 'error');
-            }
-        }
-
-        function makeModalDraggable(modal) {
-            const header = modal.querySelector('.modal-header');
-            if (!header) {
-                return;
-            }
-
-            let dragging = false;
-            let startX = 0;
-            let startY = 0;
-            let startLeft = 0;
-            let startTop = 0;
-
-            const getPoint = (event) => event.touches ? event.touches[0] : event;
-
-            const startDrag = (event) => {
-                if (event.target.closest('button')) {
-                    return;
-                }
-
-                const point = getPoint(event);
-                const rect = modal.getBoundingClientRect();
-                dragging = true;
-                startX = point.clientX;
-                startY = point.clientY;
-                startLeft = rect.left;
-                startTop = rect.top;
-                modal.style.left = `${startLeft}px`;
-                modal.style.top = `${startTop}px`;
-                modal.style.transform = 'none';
-                modal.style.zIndex = '2010';
-                event.preventDefault();
-            };
-
-            const drag = (event) => {
-                if (!dragging) {
-                    return;
-                }
-
-                const point = getPoint(event);
-                const nextLeft = startLeft + point.clientX - startX;
-                const nextTop = startTop + point.clientY - startY;
-                modal.style.left = `${Math.max(0, Math.min(window.innerWidth - modal.offsetWidth, nextLeft))}px`;
-                modal.style.top = `${Math.max(0, Math.min(window.innerHeight - modal.offsetHeight, nextTop))}px`;
-                event.preventDefault();
-            };
-
-            const stopDrag = () => {
-                dragging = false;
-                modal.style.zIndex = '2001';
-            };
-
-            header.addEventListener('mousedown', startDrag);
-            header.addEventListener('touchstart', startDrag, { passive: false });
-            window.addEventListener('mousemove', drag);
-            window.addEventListener('touchmove', drag, { passive: false });
-            window.addEventListener('mouseup', stopDrag);
-            window.addEventListener('touchend', stopDrag);
-        }
-
-        function makeElementDraggable(element) {
-            let dragging = false;
-            let startX = 0;
-            let startY = 0;
-            let startLeft = 0;
-            let startTop = 0;
-
-            const getPoint = (event) => event.touches ? event.touches[0] : event;
-
-            const startDrag = (event) => {
-                if (event.target.closest('button')) {
-                    return;
-                }
-
-                const point = getPoint(event);
-                const rect = element.getBoundingClientRect();
-                dragging = true;
-                startX = point.clientX;
-                startY = point.clientY;
-                startLeft = rect.left;
-                startTop = rect.top;
-                element.style.left = `${startLeft}px`;
-                element.style.top = `${startTop}px`;
-                element.style.right = 'auto';
-                element.style.bottom = 'auto';
-                event.preventDefault();
-            };
-
-            const drag = (event) => {
-                if (!dragging) {
-                    return;
-                }
-
-                const point = getPoint(event);
-                const nextLeft = startLeft + point.clientX - startX;
-                const nextTop = startTop + point.clientY - startY;
-                element.style.left = `${Math.max(0, Math.min(window.innerWidth - element.offsetWidth, nextLeft))}px`;
-                element.style.top = `${Math.max(0, Math.min(window.innerHeight - element.offsetHeight, nextTop))}px`;
-                event.preventDefault();
-            };
-
-            const stopDrag = () => {
-                dragging = false;
-            };
-
-            element.addEventListener('mousedown', startDrag);
-            element.addEventListener('touchstart', startDrag, { passive: false });
-            window.addEventListener('mousemove', drag);
-            window.addEventListener('touchmove', drag, { passive: false });
-            window.addEventListener('mouseup', stopDrag);
-            window.addEventListener('touchend', stopDrag);
-        }
-
-        document.getElementById('login-player').addEventListener('click', (event) => authenticate('login', event));
-        document.getElementById('register-player').addEventListener('click', (event) => authenticate('register', event));
-        document.getElementById('load-player').addEventListener('click', initializePlayerExperience);
-        document.getElementById('btn-market-list').addEventListener('click', () => {
-            marketPanel.classList.toggle('hidden');
-        });
-        walletBtn.addEventListener('click', openWallet);
-        backpackBtn.addEventListener('click', openBackpack);
-        tradeBtn.addEventListener('click', openTradeModal);
-        closeWalletBtn.addEventListener('click', closeWallet);
-        closeBackpackBtn.addEventListener('click', closeBackpack);
-        closeTradeBtn.addEventListener('click', closeTradeModal);
-        sendTradeBtn.addEventListener('click', sendTradeOffer);
-        debugFlags95Btn.addEventListener('click', setDebugFlags95);
-        [walletModal, backpackModal, tradeModal].filter(Boolean).forEach(makeModalDraggable);
-        makeElementDraggable(document.querySelector('.map-ui-overlay'));
-
-
-        const sponsoredHistoryList = document.getElementById('sponsoredHistoryList');
-        const sponsoredMarketList = document.getElementById('sponsoredMarketList');
-
-        function renderSponsoredHistory(items) {
-            if (!Array.isArray(items) || items.length === 0) {
-                sponsoredHistoryList.innerHTML = '<div class="sponsored-card">Ainda nao apanhaste bandeiras patrocinadas.</div>';
-                return;
-            }
-            sponsoredHistoryList.innerHTML = items.map((item) => `<div class="sponsored-card">
-                <strong>${item.company_name || 'Empresa'}</strong><br>
-                <span>${item.flag_type || 'Bandeira patrocinada'}</span>
-                <small>Premio: ${item.coins_awarded || 0} ZAPs - ${item.energy_awarded || 0} energia - ${item.skill_awarded || 0} skill</small>
-                ${item.physical_reward_valid ? `<small>Premio fisico valido ate ${new Date(item.claim_deadline).toLocaleDateString('pt-PT')}</small>` : ''}
-            </div>`).join('');
-        }
-
-        function renderSponsoredMarket(items) {
-            if (!Array.isArray(items) || items.length === 0) {
-                sponsoredMarketList.innerHTML = '<div class="sponsored-card">Sem QR Codes a venda neste momento.</div>';
-                return;
-            }
-            sponsoredMarketList.innerHTML = items.map((item) => `<div class="sponsored-card">
-                <strong>${item.title || 'QR Code'}</strong><br>
-                <span>${item.description || item.item_type || 'Item promocional'}</span>
-                <small>${item.price_coins} ZAPs - Stock: ${item.stock}</small>
-                <button class="sponsored-buy" data-market-item-id="${item.id}">Comprar</button>
-            </div>`).join('');
-        }
-
-        async function loadSponsoredPanels() {
-            try {
-                const historyResponse = await fetch('/api/flags/history', { headers: headers() });
-                const historyResult = await historyResponse.json();
-                renderSponsoredHistory(historyResult.history || []);
-            } catch (error) {
-                sponsoredHistoryList.innerHTML = '<div class="sponsored-card">Historico indisponivel.</div>';
-            }
-
-            try {
-                const marketResponse = await fetch('/api/market/items', { headers: headers() });
-                const marketResult = await marketResponse.json();
-                renderSponsoredMarket(marketResult.items || []);
-            } catch (error) {
-                sponsoredMarketList.innerHTML = '<div class="sponsored-card">Mercado indisponivel.</div>';
-            }
-        }
-
-        document.querySelectorAll('[data-sponsored-tab]').forEach((button) => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('[data-sponsored-tab]').forEach((tab) => tab.classList.remove('active'));
-                document.querySelectorAll('.sponsored-list').forEach((list) => list.classList.remove('active'));
-                button.classList.add('active');
-                document.getElementById(button.dataset.sponsoredTab === 'history' ? 'sponsoredHistoryList' : 'sponsoredMarketList').classList.add('active');
-            });
-        });
-
-        sponsoredMarketList.addEventListener('click', async (event) => {
-            const button = event.target.closest('[data-market-item-id]');
-            if (!button) return;
-            try {
-                const response = await fetch('/api/market/buy', {
-                    method: 'POST',
-                    headers: headers(),
-                    body: JSON.stringify({ item_id: Number(button.dataset.marketItemId) })
-                });
-                const result = await response.json();
-                if (!response.ok || result.error || result.success === false) {
-                    showNotification(result.error || 'Compra recusada.', 'error');
-                    return;
-                }
-                showNotification('QR Code comprado com sucesso.');
-                await loadSponsoredPanels();
-            } catch (error) {
-                showNotification('Erro ao comprar QR Code.', 'error');
-            }
-        });
-
-        window.addEventListener('keydown', (event) => {
-            if (!event || !event.key) return;
-
-            const activeElem = document.activeElement;
-            if (activeElem && (
-                activeElem.tagName === 'INPUT' ||
-                activeElem.tagName === 'TEXTAREA' ||
-                activeElem.isContentEditable
-            )) {
-                return;
-            }
-
-            const key = String(event.key).toLowerCase();
-            const directionByKey = {
-                w: 'n',
-                a: 'w',
-                s: 's',
-                d: 'e'
-            };
-
-            if (!directionByKey[key]) {
-                return;
-            }
-
-            event.preventDefault();
-            moveDrone(directionByKey[key]);
-        });
-
-        const accountResetVersion = 'single-carlos-v1';
-        if (localStorage.getItem('accountResetVersion') !== accountResetVersion) {
-            localStorage.clear();
-            localStorage.setItem('accountResetVersion', accountResetVersion);
-        }
-
-        if (getToken()) {
-            initializePlayerExperience().catch((error) => {
-                playerOutput.textContent = error.message || 'Erro ao inicializar jogador.';
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const attachMobileMapClick = () => {
-                if (!map) {
-                    setTimeout(attachMobileMapClick, 250);
-                    return;
-                }
-
-                map.on('click', function(e) {
-                    const lat = e.latlng.lat;
-                    const lng = e.latlng.lng;
-                    if (typeof updatePlayerMapLayers === "function") {
-                        updatePlayerMapLayers(lat, lng);
-                    }
-                });
-            };
-
-            attachMobileMapClick();
-        });
-    </script>
+    },90000);
+}
+
+// ============================================================
+// ENTRAR NO JOGO
+// ============================================================
+function entrarJogo(user){
+    jogAtual=user;
+    document.getElementById('j-nome').innerText='👤 '+user.nome;
+    document.getElementById('j-email').innerText='📧 '+user.email;
+    atualizarHUD();
+    const b=document.getElementById('j-badge');
+    b.innerHTML=user.isAdm?'<span class="badge-adm">⚙️ ADMIN</span>':'';
+    ir('p-jogo');initTicker();
+}
+function logoutJ(){
+    if(confirm('Sair do jogo?')){
+        DB.delSess();jogAtual=null;
+        if(mapaJ){mapaJ.remove();mapaJ=null;marcJ=null;lgFlags=null;}
+        if(spawnTmr) clearTimeout(spawnTmr);
+        ir('p0');
+    }
+}
+
+// ============================================================
+// ADMIN LOGIN
+// ============================================================
+function loginAdmin(){
+    const pass=document.getElementById('adm-pass').value;
+    if(pass!==PASS){msg('m-adm-l','❌ Código incorreto!','e');return;}
+    ir('p-admin');
+}
+function logoutAdm(){if(confirm('Sair do painel de admin?')) ir('p0');}
+
+// ============================================================
+// PAINEL ADMIN
+// ============================================================
+function carregarAdmin(){
+    const us=DB.u(),ps=DB.p();
+    document.getElementById('a-tu').innerText=us.length;
+    document.getElementById('a-tp').innerText=ps.length;
+    // Jogadores
+    const du=document.getElementById('a-users');
+    if(us.length===0){du.innerHTML='<p style="color:#555;">Nenhum jogador.</p>';}
+    else{du.innerHTML=`<p style="color:#0aa;font-size:0.78rem;margin-bottom:6px;">Total: ${us.length}</p>`+
+        us.map((u,i)=>`<div class="uc"><b>👤 ${u.nome}</b> <span style="color:#0ff;font-size:0.78rem;">${u.email}</span><br>
+        <span style="color:#0aa;font-size:0.72rem;">📱${u.tel||'-'} | 🏴${u.flags||0} | ⚡${u.en||100}% | 🎫${(u.qrs||[]).length}</span><br>
+        <span style="color:#444;font-size:0.68rem;">🔑 ${u.pass}</span>
+        <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">
+            <button onclick="admJogar(${i})" style="background:#003;color:#0ff;border:1px solid #0ff;padding:3px 7px;cursor:pointer;font-size:0.7rem;border-radius:3px;">🎮 Jogar</button>
+            <button onclick="admEditU(${i})" style="background:#030;color:#0f0;border:1px solid #0f0;padding:3px 7px;cursor:pointer;font-size:0.7rem;border-radius:3px;">✏️ Editar</button>
+            <button onclick="admDelU(${i})"  style="background:#300;color:#f00;border:1px solid #f00;padding:3px 7px;cursor:pointer;font-size:0.7rem;border-radius:3px;">🗑️ Apagar</button>
+        </div></div>`).join('');}
+    // Lojistas
+    const dp=document.getElementById('a-prs');
+    if(ps.length===0){dp.innerHTML='<p style="color:#555;">Nenhum lojista.</p>';}
+    else{dp.innerHTML=`<p style="color:#0aa;font-size:0.78rem;margin-bottom:6px;">Total: ${ps.length}</p>`+
+        ps.map((p,i)=>`<div class="uc" style="border-color:#ff0;"><b style="color:#ff0;">🏪 ${p.nomeEmpresa}</b><br>
+        <span style="color:#0ff;font-size:0.78rem;">${p.email}</span><br>
+        <span style="color:#0aa;font-size:0.72rem;">NIF:${p.nif} | ${p.atividade} | ${p.localidade||''}</span><br>
+        <span style="color:#ff0;font-size:0.72rem;">🏴${(p.flagsTotal||0).toLocaleString()} flags | 📣${(p.campanhas||[]).length} camp.</span><br>
+        <span style="color:#444;font-size:0.68rem;">🔑 ${p.pass}</span>
+        <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">
+            <button onclick="admEntrarPR(${i})" style="background:#330;color:#ff0;border:1px solid #ff0;padding:3px 7px;cursor:pointer;font-size:0.7rem;border-radius:3px;">🏪 Entrar</button>
+            <button onclick="admDelPR(${i})"    style="background:#300;color:#f00;border:1px solid #f00;padding:3px 7px;cursor:pointer;font-size:0.7rem;border-radius:3px;">🗑️ Apagar</button>
+        </div></div>`).join('');}
+    // Bingos
+    const db2=document.getElementById('a-bingos');
+    const bs=DB.b();
+    if(bs.length===0){db2.innerHTML='<p style="color:#555;">Nenhum bingo.</p>';}
+    else{db2.innerHTML=`<p style="color:#0aa;font-size:0.78rem;margin-bottom:6px;">Total: ${bs.length}</p>`+
+        bs.map(b=>`<div class="uc" style="border-color:#ff0;">🎉 BINGO! <b style="color:#0ff;">${b.nome}</b><br><span style="color:#555;font-size:0.7rem;">${new Date(b.data).toLocaleString('pt-PT')}</span></div>`).join('');}
+}
+function tabAdm(id){
+    document.querySelectorAll('.adm-tc').forEach(t=>t.classList.remove('a'));
+    document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('a'));
+    document.getElementById(id).classList.add('a');
+    const tabs=['at0','at1','at2','at3','at4','at5','at6'];
+    document.querySelectorAll('.adm-tab')[tabs.indexOf(id)]?.classList.add('a');
+    if(id==='at5') setTimeout(initMapaAdm,200);
+}
+function admJogar(i){
+    const u=DB.u()[i];if(!confirm(`Jogar como ${u.nome}?`))return;
+    DB.setSess(u);entrarJogo(u);
+}
+function admJogarComoAdmin(){
+    const u={nome:'ADMIN ZAP',email:'admin@zapflags.com',flags:0,en:100,qrs:[],isAdm:true};
+    DB.setSess(u);entrarJogo(u);
+}
+function admGerirComoPR(){
+    const ps=DB.p();
+    if(ps.length===0){
+        // Criar PR admin temporário
+        const pr={nomeEmpresa:'ADMIN ZAP',atividade:'Administração',email:'admin@zapflags.com',pass:PASS,campanhas:[],flagsTotal:0,flagsRest:0,qrsGerados:0,qrsUsados:0,lat:39.5,lng:-8.0};
+        prAtual=pr;DB.setSepr(pr);abrirPR(false);
+    } else {
+        admEntrarPR(0);
+    }
+}
+function admEntrarPR(i){
+    const pr=DB.p()[i];if(!confirm(`Entrar como ${pr.nomeEmpresa}?`))return;
+    prAtual=pr;DB.setSepr(pr);abrirPR(false);
+}
+function admEditU(i){
+    const us=DB.u();const u=us[i];
+    const nn=prompt('Nome:',u.nome);if(nn===null)return;
+    const np=prompt('Senha:',u.pass);if(np===null)return;
+    us[i].nome=nn;us[i].pass=np;DB.su(us);carregarAdmin();
+}
+function admDelU(i){if(!confirm('Apagar?'))return;const us=DB.u();us.splice(i,1);DB.su(us);carregarAdmin();}
+function admDelPR(i){if(!confirm('Apagar?'))return;const ps=DB.p();ps.splice(i,1);DB.sp(ps);carregarAdmin();}
+
+// ============================================================
+// MAPA ADMIN
+// ============================================================
+let mapaAdm=null;
+function initMapaAdm(){
+    if(mapaAdm){mapaAdm.invalidateSize();return;}
+    mapaAdm=L.map('map-adm').setView([39.5,-8.0],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapaAdm);
+    DB.p().forEach(pr=>{
+        if(!pr.lat||!pr.lng)return;
+        const a=pr.campanhas&&pr.campanhas.some(c=>c.ativa);
+        const ic=L.divIcon({className:'',html:`<div style="background:${a?'#ff0':'#555'};color:#000;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;border:2px solid ${a?'#000':'#333'};">🏪</div>`,iconSize:[26,26],iconAnchor:[13,13]});
+        L.marker([pr.lat,pr.lng],{icon:ic}).addTo(mapaAdm).bindPopup(`<b>${pr.nomeEmpresa}</b><br>${pr.atividade}<br>📍 ${pr.localidade||''}`);
+    });
+}
+
+// ============================================================
+// TOOLS ADMIN
+// ============================================================
+function exportar(){
+    const d={users:DB.u(),prs:DB.p(),bingos:DB.b(),data:new Date().toISOString()};
+    const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='zap_dados.json';a.click();
+}
+function criarJTeste(){
+    const us=DB.u();const n=us.length+1;
+    us.push({nome:`Jogador ${n}`,email:`j${n}@teste.com`,tel:'912345678',pass:'teste123',flags:0,en:100,qrs:[],reg:new Date().toISOString()});
+    DB.su(us);carregarAdmin();alert(`✅ Jogador ${n} criado!`);
+}
+function criarPRTeste(){
+    const ps=DB.p();const n=ps.length+1;
+    ps.push({nomeEmpresa:`Loja ${n}`,nif:`12345678${n}`,tipo:'Outro',atividade:'Outro Comércio',email:`l${n}@teste.com`,tel:'210000000',pass:'loja123',morada:'Rua Teste',cp:'1000-001',localidade:'Lisboa',distrito:'Lisboa',respNome:'Responsável',respTel:'912345678',respEmail:`r${n}@teste.com`,lat:38.7+Math.random()*0.2,lng:-9.1+Math.random()*0.2,campanhas:[],flagsTotal:0,flagsRest:0,qrsGerados:0,qrsUsados:0,reg:new Date().toISOString()});
+    DB.sp(ps);carregarAdmin();alert(`✅ Loja ${n} criada!`);
+}
+function simBingo(){
+    const us=DB.u();
+    if(us.length===0){alert('Cria jogadores primeiro!');return;}
+    dispararBingo(us[Math.floor(Math.random()*us.length)].nome);
+}
+
+// ============================================================
+// REGISTO LOJISTA
+// ============================================================
+let prPend=null,codPR='',tmrPR=null,segPR=300;
+let mapaPRR=null,marcPRR=null,prLat=null,prLng=null;
+
+function initMapaPRReg(){
+    if(mapaPRR){mapaPRR.invalidateSize();return;}
+    mapaPRR=L.map('map-pr-r').setView([39.5,-8.0],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapaPRR);
+    if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>mapaPRR.setView([p.coords.latitude,p.coords.longitude],14),()=>{});
+    mapaPRR.on('click',e=>{
+        prLat=e.latlng.lat.toFixed(6);prLng=e.latlng.lng.toFixed(6);
+        document.getElementById('pr-lat').value=prLat;
+        document.getElementById('pr-lng').value=prLng;
+        document.getElementById('coord-txt').innerText=`✅ ${prLat}, ${prLng}`;
+        const ic=L.divIcon({className:'',html:'<div style="background:#ff0;color:#000;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid #000;">🏪</div>',iconSize:[28,28],iconAnchor:[14,14]});
+        if(marcPRR) marcPRR.setLatLng(e.latlng);
+        else{marcPRR=L.marker(e.latlng,{icon:ic,draggable:true}).addTo(mapaPRR);marcPRR.on('dragend',ev=>{prLat=ev.target.getLatLng().lat.toFixed(6);prLng=ev.target.getLatLng().lng.toFixed(6);document.getElementById('pr-lat').value=prLat;document.getElementById('pr-lng').value=prLng;});}
+    });
+}
+
+function fazerRegPR(){
+    const d={
+        nomeEmpresa:document.getElementById('pr-ne').value.trim(),
+        nif:document.getElementById('pr-nif').value.trim(),
+        tipo:document.getElementById('pr-tipo').value,
+        atividade:document.getElementById('pr-ativ').value,
+        descricao:document.getElementById('pr-desc').value.trim(),
+        morada:document.getElementById('pr-rua').value.trim(),
+        cp:document.getElementById('pr-cp').value.trim(),
+        localidade:document.getElementById('pr-loc').value.trim(),
+        distrito:document.getElementById('pr-dist').value,
+        tel:document.getElementById('pr-tel').value.trim(),
+        email:document.getElementById('pr-email').value.trim().toLowerCase(),
+        web:document.getElementById('pr-web').value.trim(),
+        ig:document.getElementById('pr-ig').value.trim(),
+        fb:document.getElementById('pr-fb').value.trim(),
+        respNome:document.getElementById('pr-rn').value.trim(),
+        respTel:document.getElementById('pr-rt').value.trim(),
+        respEmail:document.getElementById('pr-re').value.trim().toLowerCase(),
+        pass:document.getElementById('pr-pass').value,
+        p2:document.getElementById('pr-p2').value,
+        lat:prLat,lng:prLng,
+        horarios:[document.getElementById('h0').value,document.getElementById('h1').value,document.getElementById('h2').value,document.getElementById('h3').value,document.getElementById('h4').value,document.getElementById('h5').value,document.getElementById('h6').value],
+        termos:document.getElementById('pr-trm').checked,
+        campanhas:[],flagsTotal:0,flagsRest:0,qrsGerados:0,qrsUsados:0,reg:new Date().toISOString()
+    };
+    if(!d.nomeEmpresa)      {msg('m-pr-reg','❌ Nome da empresa obrigatório!','e');return;}
+    if(!d.nif||!vN(d.nif))  {msg('m-pr-reg','❌ NIF inválido (9 dígitos)!','e');return;}
+    if(!d.tipo)              {msg('m-pr-reg','❌ Seleciona o tipo de empresa!','e');return;}
+    if(!d.atividade)         {msg('m-pr-reg','❌ Seleciona o setor de atividade!','e');return;}
+    if(!d.morada)            {msg('m-pr-reg','❌ Morada obrigatória!','e');return;}
+    if(!vC(d.cp))            {msg('m-pr-reg','❌ Código postal inválido! Ex: 4000-123','e');return;}
+    if(!d.localidade)        {msg('m-pr-reg','❌ Localidade obrigatória!','e');return;}
+    if(!d.distrito)          {msg('m-pr-reg','❌ Seleciona o distrito!','e');return;}
+    if(!vT(d.tel))           {msg('m-pr-reg','❌ Telefone inválido!','e');return;}
+    if(!vE(d.email))         {msg('m-pr-reg','❌ Email inválido!','e');return;}
+    if(!d.respNome)          {msg('m-pr-reg','❌ Nome do responsável obrigatório!','e');return;}
+    if(!vT(d.respTel))       {msg('m-pr-reg','❌ Telemóvel do responsável inválido!','e');return;}
+    if(!vE(d.respEmail))     {msg('m-pr-reg','❌ Email do responsável inválido!','e');return;}
+    if(!d.pass||d.pass.length<6){msg('m-pr-reg','❌ Senha mínimo 6 caracteres!','e');return;}
+    if(d.pass!==d.p2)        {msg('m-pr-reg','❌ Senhas não coincidem!','e');return;}
+    if(!d.termos)            {msg('m-pr-reg','❌ Aceita os Termos e Condições!','e');return;}
+    if(!d.lat||!d.lng)       {msg('m-pr-reg','❌ Marca a localização no mapa!','e');return;}
+    const ps=DB.p();
+    if(ps.find(p=>p.nif===d.nif))   {msg('m-pr-reg','❌ NIF já registado!','e');return;}
+    if(ps.find(p=>p.email===d.email)){msg('m-pr-reg','❌ Email já registado!','e');return;}
+    prPend=d;
+    codPR=Math.floor(1000+Math.random()*9000).toString();
+    console.log('🔑 CÓDIGO PR:',codPR);
+    document.getElementById('pr-cod').innerText=codPR;
+    document.getElementById('pr-vt').innerText=`📱 Código para: ${d.tel}`;
+    iniciarTmrPR();ir('p-pr-verif');
+    msg('m-pr-verif','✅ Código enviado! Tens 5 minutos.','s');
+}
+function iniciarTmrPR(){
+    if(tmrPR) clearInterval(tmrPR);segPR=300;
+    tmrPR=setInterval(()=>{
+        segPR--;
+        const m=Math.floor(segPR/60).toString().padStart(2,'0');
+        const s=(segPR%60).toString().padStart(2,'0');
+        const el=document.getElementById('pr-tmr');if(el) el.innerText=`${m}:${s}`;
+        if(segPR<=0){clearInterval(tmrPR);document.getElementById('pr-cod').innerText='EXPIROU';msg('m-pr-verif','⏰ Expirado!','a');}
+    },1000);
+}
+function reenviarPR(){
+    codPR=Math.floor(1000+Math.random()*9000).toString();
+    document.getElementById('pr-cod').innerText=codPR;
+    document.getElementById('pr-cin').value='';
+    iniciarTmrPR();msg('m-pr-verif','✅ Novo código!','s');
+}
+function confirmarCodPR(){
+    const ins=document.getElementById('pr-cin').value.trim();
+    if(!ins||ins.length!==4){msg('m-pr-verif','❌ Insere os 4 dígitos!','e');return;}
+    if(ins!==codPR){msg('m-pr-verif','❌ Código errado!','e');document.getElementById('pr-cin').value='';return;}
+    clearInterval(tmrPR);
+    const ps=DB.p();ps.push(prPend);DB.sp(ps);
+    console.log('✅ PR guardado:',prPend.email);
+    document.getElementById('ps-n').innerText='🏢 '+prPend.nomeEmpresa;
+    document.getElementById('ps-nif').innerText='🔢 NIF: '+prPend.nif;
+    document.getElementById('ps-e').innerText='📧 '+prPend.email;
+    document.getElementById('ps-l').innerText=`📍 ${prPend.localidade}, ${prPend.distrito}`;
+    ir('p-pr-suc');
+}
+
+// ============================================================
+// LOGIN LOJISTA
+// ============================================================
+let prAtual=null;
+function fazerLoginPR(){
+    const email=document.getElementById('pl-email').value.trim().toLowerCase();
+    const pass =document.getElementById('pl-pass').value;
+    if(!email){msg('m-pr-login','❌ Insere o email!','e');return;}
+    if(!pass) {msg('m-pr-login','❌ Insere a senha!','e');return;}
+    if(pass===PASS){
+        const ps=DB.p();
+        const pr=ps.find(p=>p.email===email)||{nomeEmpresa:'DEMO PR',atividade:'Demonstração',email,pass:PASS,campanhas:[],flagsTotal:0,flagsRest:0,qrsGerados:0,qrsUsados:0,lat:39.5,lng:-8.0};
+        prAtual=pr;DB.setSepr(pr);abrirPR(false);return;
+    }
+    const ps=DB.p();
+    const eEx=ps.find(p=>p.email===email);
+    if(!eEx){msg('m-pr-login','❌ Email não encontrado! Regista a tua empresa.','e');return;}
+    const pr=ps.find(p=>p.email===email&&p.pass===pass);
+    if(!pr){msg('m-pr-login','❌ Senha incorreta!','e');return;}
+    prAtual=pr;DB.setSepr(pr);abrirPR(false);
+}
+
+// ============================================================
+// PAINEL PR
+// ============================================================
+let mapaPRP=null;
+function abrirPR(irPacks){
+    if(!prAtual) return;
+    document.getElementById('ph-n').innerText='🏪 '+prAtual.nomeEmpresa;
+    document.getElementById('ph-a').innerText=prAtual.atividade||'';
+    document.getElementById('ph-f').innerText=(prAtual.flagsRest||0).toLocaleString();
+    document.getElementById('ph-q').innerText=prAtual.qrsGerados||0;
+    document.getElementById('d0').innerText=(prAtual.flagsTotal||0).toLocaleString();
+    document.getElementById('d1').innerText=(prAtual.flagsRest||0).toLocaleString();
+    document.getElementById('d2').innerText=prAtual.qrsGerados||0;
+    document.getElementById('d3').innerText=prAtual.qrsUsados||0;
+    const dp=document.getElementById('d-pack');
+    if(prAtual.campanhas&&prAtual.campanhas.length>0){
+        const c=prAtual.campanhas[prAtual.campanhas.length-1];
+        const pct=Math.round(((c.flagsTotal-c.flagsRest)/c.flagsTotal)*100);
+        dp.innerHTML=`<div class="il"><div class="il-l">Pacote</div><div>${c.tipo}</div></div><div class="il"><div class="il-l">Prémio</div><div style="color:#0ff;">${c.premio}</div></div><div class="pb"><div class="pf" style="width:${pct}%"></div></div><div style="font-size:0.72rem;color:#0aa;">${pct}% utilizado | ${c.flagsRest.toLocaleString()} restantes</div>`;
+    } else {
+        dp.innerHTML='<p style="color:#555;font-size:0.8rem;">Sem pacote ativo. Vai a "Pacotes".</p>';
+    }
+    renderInfoEmp();renderCamp();
+    ir('p-pr-painel');
+    if(irPacks) tabPR('pt1');
+}
+
+// ============================================================
+// PACOTES
+// ============================================================
+let packSel=null;
+function selPack(tipo){
+    packSel=tipo;
+    ['pk0','pk1','pk2','pk3'].forEach(id=>document.getElementById(id).classList.remove('sel'));
+    const idx={'BRONZE':0,'PRATA':1,'OURO':2,'PLATINA':3}[tipo];
+    document.getElementById('pk'+idx).classList.add('sel');
+    const p=PACKS[tipo];
+    document.getElementById('det-pack').style.display='block';
+    document.getElementById('dp-t').innerText=p.n;
+    document.getElementById('dp-p').innerText=p.p;
+    document.getElementById('dp-f').innerText=p.f.toLocaleString()+' bandeiras';
+    document.getElementById('dp-r').innerText=p.r+' à volta da tua loja';
+    document.getElementById('dp-v').innerText=p.v;
+}
+function comprarConfirmado(){
+    if(!packSel){msg('m-pack','❌ Seleciona um pacote!','e');return;}
+    const premio=document.getElementById('pr-premio').value.trim();
+    if(!premio){msg('m-pack','❌ Define o prémio para os jogadores!','e');return;}
+    const p=PACKS[packSel];
+    const camp={tipo:p.n,flagsTotal:p.f,flagsRest:p.f,premio,raio:p.rm,ativa:true,inicio:new Date().toISOString(),fim:new Date(Date.now()+90*24*60*60*1000).toISOString()};
+    prAtual.campanhas=prAtual.campanhas||[];
+    prAtual.campanhas.push(camp);
+    prAtual.flagsTotal=(prAtual.flagsTotal||0)+p.f;
+    prAtual.flagsRest=(prAtual.flagsRest||0)+p.f;
+    guardarPRAtual();
+    msg('m-pack',`✅ ${p.n} ativado! Bandeiras já no mapa.`,'s');
+    document.getElementById('det-pack').style.display='none';
+    packSel=null;abrirPR(false);tabPR('pt2');
+}
+
+// ============================================================
+// CAMPANHAS
+// ============================================================
+function renderCamp(){
+    const div=document.getElementById('lista-camp');
+    if(!prAtual.campanhas||prAtual.campanhas.length===0){div.innerHTML='<p style="color:#555;text-align:center;">Sem campanhas. Compra um pacote!</p>';return;}
+    const dias=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+    div.innerHTML=prAtual.campanhas.map((c,i)=>{
+        const pct=Math.round(((c.flagsTotal-c.flagsRest)/c.flagsTotal)*100);
+        return `<div style="background:#0a0a0a;border:1px solid ${c.ativa?'#ff0':'#333'};border-radius:8px;padding:10px;margin:6px 0;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#ff0;font-weight:bold;">${c.tipo}</span><span style="color:${c.ativa?'#0f0':'#555'};font-size:0.78rem;">${c.ativa?'🟢 ATIVA':'⛔ PAUSADA'}</span></div>
+            <div class="il"><div class="il-l">Prémio</div><div style="color:#0ff;">${c.premio}</div></div>
+            <div class="il"><div class="il-l">Flags usadas</div><div>${(c.flagsTotal-c.flagsRest).toLocaleString()} / ${c.flagsTotal.toLocaleString()}</div></div>
+            <div class="il"><div class="il-l">Restantes</div><div style="color:#ff0;">${c.flagsRest.toLocaleString()}</div></div>
+            <div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#0aa;"><span>${pct}% usado</span><span>Expira: ${new Date(c.fim).toLocaleDateString('pt-PT')}</span></div>
+            <button onclick="toggleCamp(${i})" style="margin-top:6px;background:${c.ativa?'#330':'#030'};color:${c.ativa?'#ff0':'#0f0'};border:1px solid ${c.ativa?'#ff0':'#0f0'};padding:4px 9px;cursor:pointer;border-radius:3px;font-size:0.78rem;">${c.ativa?'⏸️ PAUSAR':'▶️ RETOMAR'}</button>
+        </div>`;
+    }).join('');
+}
+function toggleCamp(i){prAtual.campanhas[i].ativa=!prAtual.campanhas[i].ativa;guardarPRAtual();renderCamp();}
+
+// ============================================================
+// SCANNER
+// ============================================================
+function abrirScanner(){
+    document.getElementById('scan-det').style.display='none';
+    msg('m-scan','📸 A simular leitura...','i');
+    setTimeout(()=>{
+        const ok=prAtual.campanhas&&prAtual.campanhas.some(c=>c.ativa)&&Math.random()>0.3;
+        if(ok){
+            const c=prAtual.campanhas.find(c=>c.ativa);
+            document.getElementById('m-scan').className='m';
+            document.getElementById('scan-det').style.display='block';
+            document.getElementById('sc-c').innerText='jogador@exemplo.com';
+            document.getElementById('sc-p').innerText=c.premio;
+            document.getElementById('sc-v').innerText=new Date(Date.now()+7*24*60*60*1000).toLocaleDateString('pt-PT');
+        } else {msg('m-scan','❌ QR inválido ou já usado!','e');}
+    },1500);
+}
+function validarQR(){prAtual.qrsUsados=(prAtual.qrsUsados||0)+1;guardarPRAtual();document.getElementById('scan-det').style.display='none';msg('m-scan','✅ Prémio entregue!','s');abrirPR(false);}
+function recusarQR(){document.getElementById('scan-det').style.display='none';msg('m-scan','❌ QR recusado.','e');}
+
+// ============================================================
+// MAPA PR PAINEL
+// ============================================================
+function tabPR(id){
+    document.querySelectorAll('.pr-tc').forEach(t=>t.classList.remove('a'));
+    document.querySelectorAll('.pr-tab').forEach(t=>t.classList.remove('a'));
+    document.getElementById(id).classList.add('a');
+    const tabs=['pt0','pt1','pt2','pt3','pt4','pt5'];
+    document.querySelectorAll('.pr-tab')[tabs.indexOf(id)]?.classList.add('a');
+    if(id==='pt3') setTimeout(initMapaPRP,200);
+}
+function initMapaPRP(){
+    if(mapaPRP){mapaPRP.invalidateSize();return;}
+    mapaPRP=L.map('map-pr-p').setView([39.5,-8.0],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapaPRP);
+    const ps=DB.p();const bounds=[];
+    ps.forEach(pr=>{
+        if(!pr.lat||!pr.lng) return;
+        bounds.push([pr.lat,pr.lng]);
+        const a=pr.campanhas&&pr.campanhas.some(c=>c.ativa);
+        const ic=L.divIcon({className:'',html:`<div style="background:${a?'#ff0':'#555'};color:#000;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;border:2px solid ${a?'#000':'#333'};">🏪</div>`,iconSize:[26,26],iconAnchor:[13,13]});
+        L.marker([pr.lat,pr.lng],{icon:ic}).addTo(mapaPRP).bindPopup(`<b>${pr.nomeEmpresa}</b><br>${pr.atividade}`);
+        if(a){const c=pr.campanhas.find(c=>c.ativa);L.circle([pr.lat,pr.lng],{radius:c.raio||5000,color:'#ff0',fillColor:'#ff0',fillOpacity:0.06,weight:1,dashArray:'4,4'}).addTo(mapaPRP);}
+    });
+    if(bounds.length>0) mapaPRP.fitBounds(bounds,{padding:[20,20]});
+    if(prAtual?.lat&&prAtual?.lng){
+        const ic=L.divIcon({className:'',html:'<div style="background:#0ff;color:#000;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;border:3px solid #0f0;">⭐</div>',iconSize:[30,30],iconAnchor:[15,15]});
+        L.marker([prAtual.lat,prAtual.lng],{icon:ic}).addTo(mapaPRP).bindPopup(`<b>⭐ ${prAtual.nomeEmpresa}</b>`);
+    }
+}
+
+// ============================================================
+// INFO EMPRESA
+// ============================================================
+function renderInfoEmp(){
+    if(!prAtual) return;
+    const d=prAtual;
+    const dn=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+    document.getElementById('info-emp').innerHTML=`
+        <div class="ic ic-y"><p style="color:#ff0;font-size:0.85rem;margin-bottom:6px;">🏢 EMPRESA</p>
+        <div class="il"><div class="il-l">Nome</div><div>${d.nomeEmpresa||'-'}</div></div>
+        <div class="il"><div class="il-l">NIF</div><div>${d.nif||'-'}</div></div>
+        <div class="il"><div class="il-l">Atividade</div><div>${d.atividade||'-'}</div></div>
+        <div class="il"><div class="il-l">Morada</div><div>${d.morada||'-'}</div></div>
+        <div class="il"><div class="il-l">Localidade</div><div>${d.localidade||'-'}, ${d.distrito||'-'}</div></div>
+        <div class="il"><div class="il-l">GPS</div><div style="color:#0ff;">${d.lat||'?'}, ${d.lng||'?'}</div></div>
+        <div class="il"><div class="il-l">Email</div><div>${d.email||'-'}</div></div>
+        <div class="il"><div class="il-l">Tel</div><div>${d.tel||'-'}</div></div>
+        <div class="il"><div class="il-l">Website</div><div>${d.web||'-'}</div></div></div>
+        <div class="ic ic-y"><p style="color:#ff0;font-size:0.85rem;margin-bottom:6px;">🕐 HORÁRIOS</p>
+        ${d.horarios?d.horarios.map((h,i)=>`<div class="il"><div class="il-l">${dn[i]}</div><div>${h||'Não definido'}</div></div>`).join(''):'-'}</div>`;
+}
+
+function guardarPRAtual(){
+    const ps=DB.p();const idx=ps.findIndex(p=>p.email===prAtual.email);
+    if(idx>=0) ps[idx]=prAtual; else ps.push(prAtual);
+    DB.sp(ps);DB.setSepr(prAtual);
+    document.getElementById('ph-f').innerText=(prAtual.flagsRest||0).toLocaleString();
+    document.getElementById('ph-q').innerText=prAtual.qrsGerados||0;
+}
+function logoutPR(){if(confirm('Sair da conta?')){DB.delSepr();prAtual=null;if(mapaPRP){mapaPRP.remove();mapaPRP=null;}ir('p-pr0');}}
+
+// ============================================================
+// AUTO-LOGIN
+// ============================================================
+(function init(){
+    const s=DB.sess();const sp=DB.sepr();
+    if(s) entrarJogo(s);
+    else if(sp){prAtual=sp;abrirPR(false);}
+})();
+</script>
 </body>
 </html>
